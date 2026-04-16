@@ -15,6 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createTable, deleteTable } from "@/app/actions/table";
 import { QRCodeSVG } from "qrcode.react";
+import { createPortal } from "react-dom";
 
 export default function TablesManagementClient({ initialTables }: { initialTables: any[] }) {
   const [tables, setTables] = useState(initialTables);
@@ -22,10 +23,24 @@ export default function TablesManagementClient({ initialTables }: { initialTable
   const [loading, setLoading] = useState(false);
   const [qrTable, setQrTable] = useState<any>(null);
   const [origin, setOrigin] = useState("");
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setOrigin(window.location.origin);
+    setIsMounted(true);
   }, []);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (qrTable) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [qrTable]);
 
   const handleAddTable = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,13 +138,20 @@ export default function TablesManagementClient({ initialTables }: { initialTable
         ))}
       </div>
 
-      {/* QR Modal */}
-      {qrTable && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-6">
-          <div className="w-full max-w-sm surface-card p-10 relative animate-in zoom-in-95 flex flex-col items-center">
+      {/* QR Modal Portaled to Body */}
+      {isMounted && qrTable && createPortal(
+        <div className="fixed top-0 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center p-6 no-print">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-slate-900/80 backdrop-blur-md animate-in fade-in transition-opacity"
+            onClick={() => setQrTable(null)}
+          />
+          
+          {/* Modal Content */}
+          <div className="relative z-10 w-full max-w-sm surface-card p-10 shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col items-center">
             <button 
               onClick={() => setQrTable(null)}
-              className="absolute left-6 top-8 text-slate-400 hover:text-slate-900"
+              className="absolute left-6 top-8 text-slate-400 hover:text-slate-900 transition-colors"
             >
               <X className="h-6 w-6" />
             </button>
@@ -137,7 +159,7 @@ export default function TablesManagementClient({ initialTables }: { initialTable
             <h2 className="text-xl font-black mb-1">رمز QR للطاولة {qrTable.table_number}</h2>
             <p className="text-xs font-bold text-slate-400 mb-8">امسح الكود لفتح المنيو</p>
 
-            <div className="p-6 bg-white rounded-3xl shadow-inner border border-slate-100 mb-8">
+            <div id={`qr-code-${qrTable.id}`} className="p-6 bg-white rounded-3xl shadow-inner border border-slate-100 mb-8">
               <QRCodeSVG 
                 value={`${origin}/menu/${qrTable.table_number}`} 
                 size={220}
@@ -148,8 +170,8 @@ export default function TablesManagementClient({ initialTables }: { initialTable
 
             <div className="w-full flex flex-col gap-3">
                 <button 
-                onClick={() => window.print()}
-                className="premium-button w-full h-14 bg-slate-900 text-white"
+                  onClick={() => window.print()}
+                  className="premium-button w-full h-14 bg-slate-900 text-white"
                 >
                     <Download className="h-5 w-5 ml-2" />
                     تحميل للطباعة
@@ -164,8 +186,65 @@ export default function TablesManagementClient({ initialTables }: { initialTable
                 </a>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+
+      {/* Hidden Print Template */}
+      {isMounted && qrTable && createPortal(
+        <div className="hidden print:flex fixed inset-0 bg-white items-center justify-center p-0 m-0 z-[1000]">
+          <div className="flex flex-col items-center justify-center text-center p-12 border-[12px] border-slate-900 rounded-[60px] max-w-[500px] w-full aspect-[1/1.4] bg-white">
+            <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-[32px] bg-slate-900 text-white shadow-2xl">
+              <span className="text-4xl font-black">QR</span>
+            </div>
+            
+            <h1 className="text-4xl font-black text-slate-900 mb-2">أهلاً بك في مطعمنا</h1>
+            <p className="text-lg font-bold text-slate-400 mb-10">امسح الكود لطلب أشهى المأكولات</p>
+            
+            <div className="p-8 bg-white rounded-[40px] shadow-2xl border-4 border-slate-100 mb-10">
+              <QRCodeSVG 
+                value={`${origin}/menu/${qrTable.table_number}`} 
+                size={280}
+                level="H"
+                includeMargin={false}
+              />
+            </div>
+            
+            <div className="mt-auto">
+              <div className="inline-flex items-center gap-4 px-8 py-4 rounded-3xl bg-slate-900 text-white">
+                <span className="text-sm font-bold opacity-70 uppercase tracking-widest">الطاولة</span>
+                <span className="text-4xl font-black leading-none">{qrTable.table_number}</span>
+              </div>
+            </div>
+            
+            <p className="mt-8 text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">Smart Restaurant System</p>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      <style jsx global>{`
+        @media print {
+          body {
+            visibility: hidden;
+            background: white !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .print\:flex {
+            visibility: visible;
+            display: flex !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            justify-content: center;
+            align-items: center;
+          }
+        }
+      `}</style>
     </div>
   );
 }

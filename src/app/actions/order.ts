@@ -242,6 +242,11 @@ export async function markPaid(sessionId: number) {
 
 export async function markCleaned(sessionId: number) {
     try {
+        const session = await (prisma as any).customerSession.findUnique({
+            where: { id: sessionId },
+            select: { table_id: true }
+        });
+
         await (prisma as any).customerSession.update({
             where: { id: sessionId },
             data: { 
@@ -249,7 +254,16 @@ export async function markCleaned(sessionId: number) {
                 closed_at: new Date()
             }
         });
+
+        if (session?.table_id) {
+            await prisma.table.update({
+                where: { id: session.table_id },
+                data: { status: "Available" }
+            });
+        }
+
         revalidatePath("/admin/waiter");
+        revalidatePath("/admin/tables");
         return { success: true };
     } catch (error) {
         return { success: false, error: "فشل في إنهاء المهمة" };

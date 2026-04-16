@@ -69,7 +69,6 @@ export default async function MenuPage({ params }: PageProps) {
         tableId={tableId} 
         currency={settings.currency}
         taxRate={settings.taxRate}
-        initialOrders={initialOrders}
       />
     </div>
   );

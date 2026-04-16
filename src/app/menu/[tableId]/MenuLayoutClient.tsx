@@ -43,6 +43,18 @@ export default function MenuLayoutClient({
   const [isRequesting, setIsRequesting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Lock body scroll when any panel is open
+  useEffect(() => {
+    if (showCartPanel || showOrdersPanel || showBillModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showCartPanel, showOrdersPanel, showBillModal]);
+
   // Event listener for external bill request trigger
   useEffect(() => {
     const handleOpenBill = () => {
