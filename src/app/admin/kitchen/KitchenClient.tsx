@@ -103,7 +103,7 @@ export default function KitchenClient({ initialOrders }: { initialOrders: any[] 
                     {item.quantity}
                   </span>
                   <div>
-                    <p className="font-black text-slate-900 leading-tight">{item.menuItem.name}</p>
+                    <p className="font-black text-slate-900 leading-tight">{item.item_name || item.menuItem?.name || "صنف غير معروف"}</p>
                     {item.notes && (
                       <p className="text-xs font-bold text-rose-500 mt-1 italic">ملاحظة: {item.notes}</p>
                     )}

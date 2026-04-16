@@ -22,6 +22,7 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
   const [sessions, setSessions] = useState(initialSessions);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState<number | null>(null);
+  const [selectedSession, setSelectedSession] = useState<any | null>(null);
 
   const filteredSessions = sessions.filter(s => 
     s.table?.table_number.toString().includes(search) ||
@@ -137,13 +138,78 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
 
             {/* Footer Action */}
             <div className="p-4 bg-slate-50/30 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-700 flex justify-center">
-              <button className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-2 hover:gap-3 transition-all">
+              <button 
+                onClick={() => setSelectedSession(session)}
+                className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-2 hover:gap-3 transition-all"
+              >
                 عرض التفاصيل الكاملة <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Details Modal */}
+      {selectedSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-slate-800 rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-slate-700 animate-in zoom-in-95 duration-200">
+            <div className="p-8 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+              <div>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white">تفاصيل الجلسة #{selectedSession.id}</h3>
+                <p className="text-sm font-bold text-slate-400">طاولة رقم {selectedSession.table?.table_number}</p>
+              </div>
+              <button 
+                onClick={() => setSelectedSession(null)}
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <Trash2 className="w-5 h-5 text-slate-400 rotate-45" />
+              </button>
+            </div>
+            
+            <div className="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <div className="space-y-6">
+                {selectedSession.orders.map((order: any, idx: number) => (
+                  <div key={order.id} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50">
+                    <p className="text-[10px] font-black text-slate-400 uppercase mb-3">طلب رقم {idx + 1}</p>
+                    <div className="space-y-3">
+                      {order.items.map((item: any) => (
+                        <div key={item.id} className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[10px] font-black">
+                              {item.quantity}
+                            </span>
+                            <span className="font-bold text-slate-700 dark:text-slate-200">
+                                {item.item_name || item.menuItem?.name || "صنف غير معروف"}
+                            </span>
+                          </div>
+                          <span className="font-black text-slate-900 dark:text-white">
+                            {formatCurrency(Number(item.price_at_time) * item.quantity, currency)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-8 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-700">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-slate-500 dark:text-slate-400 font-bold">المجموع الكلي:</span>
+                <span className="text-3xl font-black text-blue-600 dark:text-blue-400">
+                  {formatCurrency(calculateTotal(selectedSession.orders), currency)}
+                </span>
+              </div>
+              <button 
+                onClick={() => setSelectedSession(null)}
+                className="w-full h-14 mt-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {filteredSessions.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-center">

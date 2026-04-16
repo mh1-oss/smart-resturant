@@ -63,7 +63,7 @@ export default function ReceiptTemplate({ session, settings }: ReceiptProps) {
           {session.orders.map((order: any) => 
             order.items.map((item: any) => (
               <tr key={item.id} className="text-right">
-                <td className="py-3 font-bold text-base">{item.menuItem.name}</td>
+                <td className="py-3 font-bold text-base">{item.item_name || item.menuItem?.name || "صنف غير معروف"}</td>
                 <td className="py-3 text-center font-bold text-base">{item.quantity}</td>
                 <td className="py-3 text-left font-bold text-base">
                   {formatCurrency(Number(item.price_at_time) * item.quantity, settings.currency)}

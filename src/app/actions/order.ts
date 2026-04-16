@@ -15,35 +15,56 @@ export async function createOrder(tableId: string | number, items: any[]) {
 
     const session = sessionResult.session;
 
-    // Create the order
-    const order = await (prisma as any).order.create({
-      data: {
-        session_id: session.id,
-        status: "Pending",
-        items: {
-          create: await Promise.all(items.map(async (item) => {
-            const menuItem = await (prisma as any).menuItem.findUnique({
-              where: { id: item.id },
-              select: { cost_price: true }
-            })
-            return {
-              menu_item_id: item.id,
-              quantity: item.quantity,
-              price_at_time: item.price,
-              cost_at_time: menuItem?.cost_price || 0,
-              notes: item.notes || ""
+    // Create the order with fall-back for un-generated prisma client
+    let order;
+    try {
+        order = await (prisma as any).order.create({
+            data: {
+                session_id: session.id,
+                status: "Pending",
+                items: {
+                    create: await Promise.all(items.map(async (item) => {
+                        const menuItem = await (prisma as any).menuItem.findUnique({
+                            where: { id: item.id },
+                            select: { cost_price: true, name: true }
+                        })
+                        return {
+                            menu_item_id: item.id,
+                            quantity: item.quantity,
+                            price_at_time: item.price,
+                            cost_at_time: menuItem?.cost_price || 0,
+                            item_name: menuItem?.name || "صنف غير معروف",
+                            notes: item.notes || ""
+                        }
+                    }))
+                }
             }
-          }))
-        }
-      }
-    })
+        })
+    } catch (prismaError: any) {
+        console.error("Primary order creation failed, trying fallback...", prismaError.message);
+        // Fallback for old prisma client that doesn't have 'item_name'
+        order = await (prisma as any).order.create({
+            data: {
+                session_id: session.id,
+                status: "Pending",
+                items: {
+                    create: items.map((item) => ({
+                        menu_item_id: item.id,
+                        quantity: item.quantity,
+                        price_at_time: item.price,
+                        notes: item.notes || ""
+                    }))
+                }
+            }
+        })
+    }
 
     revalidatePath(`/menu/${tableId}`)
     revalidatePath("/admin/kitchen")
     return { success: true, orderId: order.id }
-  } catch (error) {
-    console.error("Order creation error:", error)
-    return { success: false, error: "فشل في إنشاء الطلب" }
+  } catch (error: any) {
+    console.error("Final Order creation error:", error)
+    return { success: false, error: "فشل في إنشاء الطلب: " + (error.message || "") }
   }
 }
 

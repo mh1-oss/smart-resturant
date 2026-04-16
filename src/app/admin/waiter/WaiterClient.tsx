@@ -120,7 +120,7 @@ export default function WaiterClient({
                             <span className="text-[10px] font-bold text-slate-400 uppercase">طلب #{order.id}</span>
                         </div>
                         <div className="text-xs font-bold text-slate-600 mb-4">
-                            {order.items.map((i: any) => i.menuItem.name).join(", ")}
+                            {order.items.map((i: any) => i.item_name || i.menuItem?.name || "صنف غير معروف").join(", ")}
                         </div>
                         {order.waiter_id === userId ? (
                              <button 

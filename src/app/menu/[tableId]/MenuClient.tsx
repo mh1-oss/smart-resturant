@@ -460,7 +460,9 @@ export default function MenuClient({
                             <span className="flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 text-xs font-black text-slate-600">
                               {item.quantity}
                             </span>
-                            <span className="font-bold text-slate-700">{item.menuItem.name}</span>
+                            <span className="font-bold text-slate-700">
+                                {item.item_name || item.menuItem?.name || "صنف غير معروف"}
+                            </span>
                           </div>
                           <span className="font-black text-slate-900">
                             {formatCurrency(item.price_at_time * item.quantity, currency)}

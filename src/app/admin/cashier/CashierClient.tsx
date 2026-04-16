@@ -182,7 +182,7 @@ export default function CashierClient({
                   {session.orders.map((order: any) => 
                     order.items.map((item: any) => (
                       <div key={item.id} className="flex justify-between text-sm font-bold text-slate-600 bg-white/50 p-2 rounded-lg">
-                        <span>{item.menuItem.name} x{item.quantity}</span>
+                        <span>{item.item_name || item.menuItem?.name || "صنف غير معروف"} x{item.quantity}</span>
                         <span>{formatCurrency(Number(item.price_at_time) * item.quantity, settings.currency)}</span>
                       </div>
                     ))
