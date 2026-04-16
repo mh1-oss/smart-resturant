@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://neondb_owner:npg_W67fNlvaATSR@ep-delicate-wave-al5wczlo-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String?   @unique
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(Waiter)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[]
+  sessions      Session[]
+  expenses      Expense[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Table {
+  id           Int               @id @default(autoincrement())
+  table_number Int               @unique
+  qr_code_url  String
+  status       TableStatus       @default(Available)
+  sessions     CustomerSession[]
+}
+
+model Category {
+  id        Int        @id @default(autoincrement())
+  name      String
+  menuItems MenuItem[]
+}
+
+model MenuItem {
+  id           Int         @id @default(autoincrement())
+  category_id  Int
+  name         String
+  description  String
+  price        Decimal
+  cost_price   Decimal     @default(0)
+  image_url    String
+  is_available Boolean     @default(true)
+  category     Category    @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  orderItems   OrderItem[]
+  offers       Offer[]     @relation("MenuItemOffers")
+}
+
+model CustomerSession {
+  id         Int           @id @default(autoincrement())
+  table_id   Int
+  status     SessionStatus @default(Active)
+  created_at DateTime      @default(now())
+  closed_at  DateTime?
+  bill_waiter_id     String?
+  cleaning_waiter_id String?
+  table      Table         @relation(fields: [table_id], references: [id], onDelete: Cascade)
+  orders     Order[]
+}
+
+model Order {
+  id         Int             @id @default(autoincrement())
+  session_id Int
+  status     OrderStatus     @default(Pending)
+  created_at DateTime        @default(now())
+  waiter_id  String?
+  session    CustomerSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  items      OrderItem[]
+}
+
+model OrderItem {
+  id            Int      @id @default(autoincrement())
+  order_id      Int
+  menu_item_id  Int
+  quantity      Int
+  notes         String?
+  price_at_time Decimal
+  cost_at_time  Decimal  @default(0)
+  menuItem      MenuItem @relation(fields: [menu_item_id], references: [id], onDelete: Cascade)
+  order         Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+}
+
+model Offer {
+  id                  Int        @id @default(autoincrement())
+  title               String
+  description         String?
+  image_url           String?
+  discount_percentage Int?
+  is_active           Boolean    @default(true)
+  created_at          DateTime   @default(now())
+  menuItems           MenuItem[] @relation("MenuItemOffers")
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+enum Role {
+  Admin
+  Chef
+  Waiter
+  Cashier
+}
+
+enum TableStatus {
+  Available
+  Occupied
+}
+
+enum SessionStatus {
+  Active
+  BillRequested
+  ReceiptReady
+  CleaningRequired
+  Closed
+}
+
+enum OrderStatus {
+  Pending
+  Preparing
+  Ready
+  Served
+  Cancelled
+}
+
+model Expense {
+  id          Int      @id @default(autoincrement())
+  description String
+  amount      Decimal
+  date        DateTime @default(now())
+  user_id     String
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}

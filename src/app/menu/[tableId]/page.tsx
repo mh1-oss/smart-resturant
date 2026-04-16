@@ -1,0 +1,76 @@
+import { prisma } from "@/lib/prisma";
+import MenuClient from "./MenuClient";
+import { getSettings } from "@/app/actions/settings";
+import { getCustomerOrders, ensureActiveSession } from "@/app/actions/order";
+
+interface PageProps {
+  params: Promise<{ tableId: string }>;
+}
+
+export default async function MenuPage({ params }: PageProps) {
+  const { tableId } = await params;
+  const tableIdNum = parseInt(tableId);
+  const settings = await getSettings();
+  
+  // Ensure we have an active session for this table scanning
+  await ensureActiveSession(tableIdNum);
+  
+  // Fetch categories and items
+  const categoriesRaw = await prisma.category.findMany({
+    include: {
+      menuItems: {
+        where: { is_available: true }
+      }
+    },
+    orderBy: { id: 'asc' }
+  });
+
+  // Fetch active offers to apply discounts
+  const activeOffers = await (prisma as any).offer.findMany({
+    where: { is_active: true },
+    include: { menuItems: true }
+  });
+
+  // Convert Decimal to Number for serialization compatibility
+  const categories = categoriesRaw.map((cat: any) => ({
+    ...cat,
+    menuItems: cat.menuItems.map((item: any) => {
+      const itemPrice = Number(item.price);
+      // Find the best discount percentage from active offers for this item
+      const applicableOffers = activeOffers.filter((o: any) => 
+        o.menuItems.some((mi: any) => mi.id === item.id)
+      );
+      
+      const maxDiscount = applicableOffers.reduce((max: number, offer: any) => 
+        Math.max(max, offer.discount_percentage || 0), 0
+      );
+
+      return {
+        ...item,
+        originalPrice: itemPrice,
+        price: maxDiscount > 0 ? (itemPrice * (1 - maxDiscount / 100)) : itemPrice,
+        cost_price: Number(item.cost_price || 0),
+        discountPercentage: maxDiscount > 0 ? maxDiscount : null
+      };
+    })
+  }));
+
+  // Fetch initial active orders for the table
+  let initialOrders: any[] = [];
+  const orderResult = await getCustomerOrders(tableId);
+  if (orderResult.success) {
+    initialOrders = orderResult.orders || [];
+  }
+
+  return (
+    <div className="py-6 px-6">
+      <MenuClient 
+        initialCategories={categories} 
+        tableId={tableId} 
+        currency={settings.currency}
+        taxRate={settings.taxRate}
+        initialOrders={initialOrders}
+      />
+    </div>
+  );
+}

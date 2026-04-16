@@ -1,0 +1,494 @@
+"use server"
+
+import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
+
+export async function createOrder(tableId: string | number, items: any[]) {
+  try {
+    const tableIdNum = typeof tableId === 'string' ? parseInt(tableId) : tableId;
+    
+    // Ensure active session
+    const sessionResult = await ensureActiveSession(tableIdNum);
+    if (!sessionResult.success || !sessionResult.session) {
+        return { success: false, error: sessionResult.error || "فشل في بدء جلسة الطلب" };
+    }
+
+    const session = sessionResult.session;
+
+    // Create the order
+    const order = await (prisma as any).order.create({
+      data: {
+        session_id: session.id,
+        status: "Pending",
+        items: {
+          create: await Promise.all(items.map(async (item) => {
+            const menuItem = await (prisma as any).menuItem.findUnique({
+              where: { id: item.id },
+              select: { cost_price: true }
+            })
+            return {
+              menu_item_id: item.id,
+              quantity: item.quantity,
+              price_at_time: item.price,
+              cost_at_time: menuItem?.cost_price || 0,
+              notes: item.notes || ""
+            }
+          }))
+        }
+      }
+    })
+
+    revalidatePath(`/menu/${tableId}`)
+    revalidatePath("/admin/kitchen")
+    return { success: true, orderId: order.id }
+  } catch (error) {
+    console.error("Order creation error:", error)
+    return { success: false, error: "فشل في إنشاء الطلب" }
+  }
+}
+
+export async function updateOrderStatus(orderId: number, status: string) {
+  try {
+    await (prisma as any).order.update({
+      where: { id: orderId },
+      data: { status }
+    })
+    revalidatePath("/admin/kitchen")
+    revalidatePath("/admin/waiter")
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: "فشل في تحديث حالة الطلب" }
+  }
+}
+
+export async function closeSession(sessionId: number) {
+  try {
+    await (prisma as any).customerSession.update({
+      where: { id: sessionId },
+      data: { 
+        status: "Closed",
+        closed_at: new Date()
+      }
+    })
+    revalidatePath("/admin/waiter")
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: "فشل في إنهاء الجلسة" }
+  }
+}
+
+export async function requestBill(tableId: string) {
+  try {
+    const tableIdNum = parseInt(tableId)
+    const session = await (prisma as any).customerSession.findFirst({
+      where: { 
+        table: { table_number: tableIdNum },
+        status: "Active"
+      },
+      include: {
+        orders: {
+          include: { items: true }
+        }
+      }
+    })
+
+    if (!session) return { success: false, error: "لم يتم العثور على جلسة نشطة" }
+
+    // Check if all orders are served
+    const allServed = session.orders.every((order: any) => order.status === "Served")
+    if (!allServed) {
+      return { success: false, error: "لا يمكنك طلب الحساب حتى يتم تقديم جميع الطلبات" }
+    }
+
+    await (prisma as any).customerSession.update({
+      where: { id: session.id },
+      data: { status: "BillRequested" }
+    })
+
+    revalidatePath("/admin/waiter")
+    return { success: true }
+  } catch (error) {
+    return { success: false, error: "فشل في طلب الحساب" }
+  }
+}
+
+export async function claimTask(type: 'Serve' | 'Bill' | 'Clean', id: number, waiterId: string) {
+    try {
+        if (type === 'Serve') {
+            await (prisma as any).order.update({
+                where: { id },
+                data: { waiter_id: waiterId }
+            });
+        } else if (type === 'Bill') {
+            await (prisma as any).customerSession.update({
+                where: { id },
+                data: { bill_waiter_id: waiterId }
+            });
+        } else if (type === 'Clean') {
+            await (prisma as any).customerSession.update({
+                where: { id },
+                data: { cleaning_waiter_id: waiterId }
+            });
+        }
+        revalidatePath("/admin/waiter");
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "فشل في استلام المهمة" };
+    }
+}
+
+export async function ensureActiveSession(tableNumber: number) {
+    try {
+        const table = await prisma.table.findUnique({
+            where: { table_number: tableNumber }
+        });
+
+        if (!table) return { success: false, error: "الطاولة غير موجودة" };
+
+        // Search for an existing active session
+        let session = await (prisma as any).customerSession.findFirst({
+            where: {
+                table: { table_number: tableNumber },
+                status: { in: ["Active", "BillRequested", "ReceiptReady"] }
+            }
+        });
+
+        // If no active/pending session, and table is not explicitly blocked, create one
+        if (!session) {
+            console.log(`Creating new session for table ${tableNumber}...`);
+            session = await (prisma as any).customerSession.create({
+                data: {
+                    table_id: table.id,
+                    status: "Active"
+                }
+            });
+            
+            // Also update table status
+            await prisma.table.update({
+                where: { id: table.id },
+                data: { status: "Occupied" }
+            });
+        }
+
+        return { success: true, session };
+    } catch (error) {
+        console.error("ensureActiveSession error:", error);
+        return { success: false, error: "فشل في التحقق من الجلسة" };
+    }
+}
+
+export async function serveOrder(orderId: number) {
+    try {
+        await (prisma as any).order.update({
+            where: { id: orderId },
+            data: { status: "Served" }
+        });
+        revalidatePath("/admin/waiter");
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "فشل في تحديث حالة الطلب" };
+    }
+}
+
+export async function printReceipt(sessionId: number) {
+    try {
+        console.log("Printing receipt for session:", sessionId);
+        await (prisma as any).customerSession.update({
+            where: { id: sessionId },
+            data: { status: "ReceiptReady" }
+        });
+        revalidatePath("/admin/cashier");
+        revalidatePath("/admin/waiter");
+        return { success: true };
+    } catch (error) {
+        console.error("Print receipt error:", error);
+        return { success: false, error: "فشل في طباعة الوصل" };
+    }
+}
+
+export async function markPaid(sessionId: number) {
+    try {
+        console.log("Marking session as paid:", sessionId);
+        await (prisma as any).customerSession.update({
+            where: { id: Number(sessionId) },
+            data: { status: "CleaningRequired" }
+        });
+        revalidatePath("/admin/cashier");
+        revalidatePath("/admin/waiter");
+        return { success: true };
+    } catch (error) {
+        console.error("Mark paid error:", error);
+        return { success: false, error: "فشل في تأكيد الدفع" };
+    }
+}
+
+export async function markCleaned(sessionId: number) {
+    try {
+        await (prisma as any).customerSession.update({
+            where: { id: sessionId },
+            data: { 
+                status: "Closed",
+                closed_at: new Date()
+            }
+        });
+        revalidatePath("/admin/waiter");
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "فشل في إنهاء المهمة" };
+    }
+}
+
+export async function getCustomerOrders(tableId: string | number) {
+  try {
+    const tableIdNum = typeof tableId === 'string' ? parseInt(tableId) : tableId;
+    
+    const session = await (prisma as any).customerSession.findFirst({
+      where: { 
+        table: { table_number: tableIdNum },
+        status: { in: ["Active", "BillRequested", "ReceiptReady"] }
+      },
+      include: {
+        orders: {
+          include: {
+            items: {
+              include: { menuItem: true }
+            }
+          },
+          orderBy: { created_at: 'desc' }
+        }
+      }
+    });
+
+    if (!session) return { success: true, orders: [] };
+
+    return { 
+        success: true, 
+        orders: session.orders.map((o: any) => ({
+            ...o,
+            items: o.items.map((i: any) => ({
+                ...i,
+                price_at_time: Number(i.price_at_time),
+                cost_at_time: Number(i.cost_at_time),
+                menuItem: i.menuItem ? {
+                    ...i.menuItem,
+                    price: Number(i.menuItem.price),
+                    cost_price: Number(i.menuItem.cost_price)
+                } : null
+            }))
+        }))
+    };
+  } catch (error) {
+    return { success: false, error: "فشل في جلب الطلبات" };
+  }
+}
+
+export async function getActiveOrders() {
+  try {
+    const ordersRaw = await (prisma as any).order.findMany({
+      where: {
+        status: { in: ["Pending", "Preparing", "Ready"] }
+      },
+      include: {
+        session: { include: { table: true } },
+        items: { include: { menuItem: true } }
+      },
+      orderBy: { created_at: "asc" }
+    });
+
+    return { 
+        success: true, 
+        orders: ordersRaw.map((o: any) => ({
+            ...o,
+            items: o.items.map((i: any) => ({
+                ...i,
+                price_at_time: Number(i.price_at_time),
+                cost_at_time: Number(i.cost_at_time),
+                menuItem: i.menuItem ? {
+                    ...i.menuItem,
+                    price: Number(i.menuItem.price),
+                    cost_price: Number(i.menuItem.cost_price)
+                } : null
+            }))
+        }))
+    };
+  } catch (error) {
+    return { success: false, error: "فشل في جلب الطلبات" };
+  }
+}
+
+export async function getCashierSessions() {
+  try {
+    const sessionsRaw = await (prisma as any).customerSession.findMany({
+      where: {
+        status: {
+          in: ["BillRequested", "ReceiptReady", "Active"]
+        }
+      },
+      include: {
+        table: true,
+        orders: {
+          include: {
+            items: {
+              include: { menuItem: true }
+            }
+          }
+        }
+      },
+      orderBy: { created_at: "asc" }
+    });
+
+    return sessionsRaw.map((session: any) => ({
+      ...session,
+      orders: session.orders.map((order: any) => ({
+        ...order,
+        items: order.items.map((item: any) => ({
+          ...item,
+          price_at_time: Number(item.price_at_time),
+          cost_at_time: Number(item.cost_at_time),
+          menuItem: item.menuItem ? {
+            ...item.menuItem,
+            price: Number(item.menuItem.price),
+            cost_price: Number(item.menuItem.cost_price)
+          } : null
+        }))
+      }))
+    }));
+  } catch (error) {
+    console.error("Fetch cashier sessions error:", error);
+    return [];
+  }
+}
+
+export async function getWaiterUpdates() {
+    try {
+        const [tablesRaw, readyOrdersRaw, billTasksRaw, cleanTasksRaw] = await Promise.all([
+            prisma.table.findMany({
+                include: {
+                    sessions: {
+                        where: { 
+                            status: { in: ["Active", "BillRequested", "ReceiptReady", "CleaningRequired"] as any } 
+                        },
+                        include: {
+                            orders: {
+                                include: {
+                                    items: { include: { menuItem: true } }
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: { table_number: "asc" }
+            }),
+            (prisma as any).order.findMany({
+                where: { status: "Ready" },
+                include: {
+                    session: { include: { table: true } },
+                    items: { include: { menuItem: true } }
+                }
+            }),
+            (prisma as any).customerSession.findMany({
+                where: { status: "ReceiptReady" as any },
+                include: { table: true }
+            }),
+            (prisma as any).customerSession.findMany({
+                where: { status: "CleaningRequired" as any },
+                include: { table: true }
+            })
+        ]);
+
+        const tables = tablesRaw.map(table => ({
+            ...table,
+            sessions: table.sessions.map(s => ({
+                ...s,
+                orders: s.orders.map(o => ({
+                    ...o,
+                    items: o.items.map((i: any) => ({
+                        ...i,
+                        price_at_time: Number(i.price_at_time),
+                        cost_at_time: Number(i.cost_at_time),
+                        menuItem: i.menuItem ? {
+                            ...i.menuItem,
+                            price: Number(i.menuItem.price),
+                            cost_price: Number(i.menuItem.cost_price)
+                        } : null
+                    }))
+                }))
+            }))
+        }));
+
+        const readyOrders = readyOrdersRaw.map((o: any) => ({
+            ...o,
+            items: o.items.map((i: any) => ({
+                ...i,
+                price_at_time: Number(i.price_at_time),
+                cost_at_time: Number(i.cost_at_time),
+                menuItem: i.menuItem ? {
+                    ...i.menuItem,
+                    price: Number(i.menuItem.price),
+                    cost_price: Number(i.menuItem.cost_price)
+                } : null
+            }))
+        }));
+
+        return { 
+            success: true, 
+            tables, 
+            readyOrders, 
+            billTasks: billTasksRaw, 
+            cleanTasks: cleanTasksRaw 
+        };
+    } catch (error) {
+        console.error("Waiter updates fetch error:", error);
+        return { success: false, error: "فشل في جلب التحديثات" };
+    }
+}
+
+export async function getClosedSessions() {
+    try {
+        const sessionsRaw = await (prisma as any).customerSession.findMany({
+            where: { status: "Closed" },
+            include: {
+                table: true,
+                orders: {
+                    include: {
+                        items: { include: { menuItem: true } }
+                    }
+                }
+            },
+            orderBy: { closed_at: "desc" }
+        });
+
+        return sessionsRaw.map((session: any) => ({
+            ...session,
+            orders: session.orders.map((order: any) => ({
+                ...order,
+                items: order.items.map((item: any) => ({
+                    ...item,
+                    price_at_time: Number(item.price_at_time),
+                    cost_at_time: Number(item.cost_at_time),
+                    menuItem: item.menuItem ? {
+                        ...item.menuItem,
+                        price: Number(item.menuItem.price),
+                        cost_price: Number(item.menuItem.cost_price)
+                    } : null
+                }))
+            }))
+        }));
+    } catch (error) {
+        console.error("Fetch closed sessions error:", error);
+        return [];
+    }
+}
+
+export async function deleteSession(sessionId: number) {
+    try {
+        await (prisma as any).customerSession.delete({
+            where: { id: sessionId }
+        });
+        revalidatePath("/admin/archive");
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "فشل في حذف السجل" };
+    }
+}
+

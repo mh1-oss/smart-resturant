@@ -1,0 +1,159 @@
+"use client";
+
+import { useState } from "react";
+import { 
+  Calendar, 
+  Search, 
+  Trash2, 
+  Clock, 
+  ChevronRight, 
+  Receipt,
+  Download,
+  Filter,
+  ArrowUpDown,
+  Table as TableIcon
+} from "lucide-react";
+import { format } from "date-fns";
+import { ar } from "date-fns/locale";
+import { formatCurrency } from "@/lib/utils";
+import { deleteSession } from "@/app/actions/order";
+
+export default function ArchiveClient({ initialSessions, currency }: { initialSessions: any[], currency: string }) {
+  const [sessions, setSessions] = useState(initialSessions);
+  const [search, setSearch] = useState("");
+  const [loading, setLoading] = useState<number | null>(null);
+
+  const filteredSessions = sessions.filter(s => 
+    s.table?.table_number.toString().includes(search) ||
+    s.id.toString().includes(search)
+  );
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("هل أنت متأكد من حذف هذا السجل بشكل نهائي؟ لا يمكن التراجع عن هذه العملية.")) return;
+    
+    setLoading(id);
+    const result = await deleteSession(id);
+    if (result.success) {
+      setSessions(prev => prev.filter(s => s.id !== id));
+    } else {
+      alert(result.error);
+    }
+    setLoading(null);
+  };
+
+  const calculateTotal = (orders: any[]) => {
+    return orders.reduce((sum, order) => {
+      return sum + order.items.reduce((itemSum: number, item: any) => {
+        return itemSum + (item.price_at_time * item.quantity);
+      }, 0);
+    }, 0);
+  };
+
+  return (
+    <div className="p-4 md:p-8 min-h-screen bg-slate-50 dark:bg-slate-900">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">سجل الأرشيف</h1>
+          <p className="text-slate-600 dark:text-slate-400">إدارة ومراجعة كافة الطلبات السابقة والجلسات المغلقة</p>
+        </div>
+        
+        <div className="flex items-center gap-3">
+          <div className="relative group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-blue-500 transition-colors" />
+            <input 
+              type="text"
+              placeholder="البحث برقم الطاولة أو السجل..."
+              className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all w-full md:w-64"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <button className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+            <Filter className="w-5 h-5 text-slate-600 dark:text-slate-400" />
+          </button>
+        </div>
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredSessions.map((session) => (
+          <div key={session.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden group hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300">
+            {/* Session Card Header */}
+            <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <TableIcon className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-sm text-slate-500 dark:text-slate-400 block">طاولة رقم</span>
+                  <span className="font-bold text-slate-900 dark:text-white">#{session.table?.table_number}</span>
+                </div>
+              </div>
+              <button 
+                onClick={() => handleDelete(session.id)}
+                disabled={loading === session.id}
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+              >
+                {loading === session.id ? (
+                  <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+
+            {/* Session Body */}
+            <div className="p-5">
+              <div className="space-y-4 mb-6">
+                <div className="flex items-center gap-3 text-sm">
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {format(new Date(session.created_at), 'PPP', { locale: ar })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Clock className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {format(new Date(session.created_at), 'hh:mm a')} - {session.closed_at ? format(new Date(session.closed_at), 'hh:mm a') : 'مفتوح'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Receipt className="w-4 h-4 text-slate-400" />
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {session.orders.length} طلبات منفصلة
+                  </span>
+                </div>
+              </div>
+
+              {/* Total Summary */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between">
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400">المجموع الكلي:</span>
+                <span className="text-xl font-bold text-blue-600 dark:text-blue-400">
+                  {formatCurrency(calculateTotal(session.orders), currency)}
+                </span>
+              </div>
+            </div>
+
+            {/* Footer Action */}
+            <div className="p-4 bg-slate-50/30 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-700 flex justify-center">
+              <button className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-2 hover:gap-3 transition-all">
+                عرض التفاصيل الكاملة <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredSessions.length === 0 && (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+            <Receipt className="w-10 h-10 text-slate-400" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">لا يوجد سجلات</h2>
+          <p className="text-slate-500 dark:text-slate-400">لم يتم العثور على أي جلسات مغلقة في الأرشيف حالياً</p>
+        </div>
+      )}
+    </div>
+  );
+}
