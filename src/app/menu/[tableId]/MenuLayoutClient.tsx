@@ -108,27 +108,27 @@ export default function MenuLayoutClient({
       <AnimatePresence mode="wait">
         <motion.div
            key={pathname}
-           initial={{ opacity: 0, x: 20 }}
-           animate={{ opacity: 1, x: 0 }}
-           exit={{ opacity: 0, x: -20 }}
-           transition={{ duration: 0.3, ease: "easeInOut" }}
+           initial={{ opacity: 0, scale: 0.98, y: 10 }}
+           animate={{ opacity: 1, scale: 1, y: 0 }}
+           exit={{ opacity: 0, scale: 1.02, y: -10 }}
+           transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }} // Fast cubic-bezier for snappy feel
         >
           {children}
         </motion.div>
       </AnimatePresence>
 
-      <div className="fixed inset-x-6 bottom-[108px] z-[100] flex items-center justify-between pointer-events-none">
+      <div className="fixed inset-x-4 sm:inset-x-6 bottom-[92px] sm:bottom-[108px] z-[100] flex items-center justify-between pointer-events-none">
         <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="pointer-events-auto">
           <button
             onClick={() => setShowOrdersPanel(true)}
-            className="group relative flex h-[58px] items-center gap-3 rounded-full bg-white px-6 font-black text-slate-700 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 hover:bg-slate-50 transition-all active:scale-92"
+            className="group relative flex h-[52px] sm:h-[58px] items-center gap-2 sm:gap-3 rounded-full bg-white px-4 sm:px-6 font-black text-slate-700 shadow-xl shadow-slate-200/50 ring-1 ring-slate-200/60 hover:bg-slate-50 transition-all active:scale-95"
           >
-            <span className="text-[15px]">طلباتي</span>
-            <UtensilsCrossed className="h-5 w-5 text-slate-600 group-hover:rotate-12 transition-transform" />
+            <span className="text-xs sm:text-[15px]">طلباتي</span>
+            <UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600 group-hover:rotate-12 transition-transform" />
             {customerOrders.some(o => ["Pending", "Preparing", "Ready"].includes(o.status)) && (
-              <span className="absolute -top-1 -right-1 flex h-6 w-6">
+              <span className="absolute -top-1 -right-1 flex h-5 w-5 sm:h-6 sm:w-6">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-6 w-6 bg-rose-500 border-[3px] border-white shadow-sm"></span>
+                <span className="relative inline-flex rounded-full h-5 w-5 sm:h-6 sm:w-6 bg-rose-500 border-[2px] sm:border-[3px] border-white shadow-sm"></span>
               </span>
             )}
           </button>
@@ -139,15 +139,15 @@ export default function MenuLayoutClient({
             <motion.div initial={{ x: 20, opacity: 0, scale: 0.8 }} animate={{ x: 0, opacity: 1, scale: 1 }} exit={{ x: 20, opacity: 0, scale: 0.8 }} className="pointer-events-auto">
               <button
                 onClick={() => setShowCartPanel(true)}
-                className="flex h-[58px] items-center gap-4 rounded-full bg-slate-900 pl-2 pr-6 text-white shadow-2xl shadow-slate-900/30 ring-4 ring-white transition-all active:scale-92"
+                className="flex h-[52px] sm:h-[58px] items-center gap-3 sm:gap-4 rounded-full bg-slate-900 pl-2 pr-4 sm:pr-6 text-white shadow-2xl shadow-slate-900/30 ring-4 ring-white transition-all active:scale-95"
               >
                 <div className="flex flex-col items-end">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-0.5">السلة</p>
-                  <p className="text-sm font-black leading-none">{formatCurrency(totalPrice, currency)}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none mb-0.5">السلة</p>
+                  <p className="text-xs sm:text-sm font-black leading-none">{formatCurrency(totalPrice, currency)}</p>
                 </div>
-                <div className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/10 backdrop-blur-md">
-                  <ShoppingBag className="h-5 w-5" />
-                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black border-2 border-slate-900">{totalItems}</span>
+                <div className="relative flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white/10 backdrop-blur-md">
+                  <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="absolute -right-1 -top-1 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full bg-amber-500 text-[9px] sm:text-[10px] font-black border-2 border-slate-900">{totalItems}</span>
                 </div>
               </button>
             </motion.div>
@@ -260,8 +260,8 @@ export default function MenuLayoutClient({
         )}
       </AnimatePresence>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200/60 bg-white/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-3xl items-center justify-around px-4 py-4">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200/60 bg-white/95 backdrop-blur-2xl">
+        <div className="mx-auto flex max-w-3xl items-center justify-around px-2 py-3">
           {[
             { href: `/menu/${tableId}`, label: "الرئيسية", icon: House },
             { href: `/menu/${tableId}/offers`, label: "العروض", icon: Star }
@@ -269,10 +269,24 @@ export default function MenuLayoutClient({
             const Icon = item.icon;
             const isActive = pathname === item.href;
             return (
-              <Link key={item.label} href={item.href}>
-                <motion.div whileTap={{ scale: 0.9 }} className={cn("flex flex-col items-center gap-1 transition-all duration-300", isActive ? "text-slate-900 scale-110" : "text-slate-400 hover:text-slate-600")}>
-                  <div className={cn("p-1 rounded-xl transition-all", isActive && "bg-slate-100")}><Icon className="h-6 w-6" strokeWidth={isActive ? 2.5 : 2} /></div>
-                  <span className="text-[10px] font-black">{item.label}</span>
+              <Link key={item.label} href={item.href} className="flex-1 max-w-[120px]">
+                <motion.div 
+                  whileTap={{ scale: 0.88 }} 
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 py-1 px-4 rounded-2xl transition-all duration-200", 
+                    isActive ? "text-slate-900" : "text-slate-400 active:text-slate-600"
+                  )}
+                >
+                  <div className={cn(
+                    "flex items-center justify-center h-10 w-16 rounded-2xl transition-all duration-300", 
+                    isActive ? "bg-slate-100 shadow-inner scale-105" : "bg-transparent"
+                  )}>
+                    <Icon className={cn("h-6 w-6 transition-all", isActive ? "stroke-[2.5]" : "stroke-2")} />
+                  </div>
+                  <span className={cn("text-[10px] tracking-wide transition-all", isActive ? "font-black" : "font-bold")}>
+                    {item.label}
+                  </span>
                 </motion.div>
               </Link>
             );

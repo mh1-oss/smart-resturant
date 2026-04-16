@@ -2,8 +2,8 @@ import { getActiveOffers } from "@/app/actions/offer";
 import { getSettings } from "@/app/actions/settings";
 import OffersView from "./OffersView";
 
-export default async function OffersPage({ params }: { params: { tableId: string } }) {
-  const { tableId } = params;
+export default async function OffersPage({ params }: { params: Promise<{ tableId: string }> }) {
+  const { tableId } = await params;
   const settings = await getSettings();
   const result = await getActiveOffers();
 
