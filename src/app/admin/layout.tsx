@@ -12,7 +12,8 @@ import {
   CircleUserRound,
 } from "lucide-react";
 import Link from "next/link";
-import NavItem from "./NavItem"; // Client component for highlighting
+import NavItem from "./NavItem"; 
+import AdminHeaderActions from "./AdminHeaderActions";
 import { getSettings } from "@/app/actions/settings";
 
 export default async function AdminLayout({
@@ -101,12 +102,7 @@ export default async function AdminLayout({
         {/* Fixed Header */}
         <header className="flex h-20 items-center justify-between px-8 py-4 bg-[#fcfdfe]/80 backdrop-blur-md border-b border-slate-200/50 z-20 shrink-0">
           <div className="flex items-center gap-3">
-            <button className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
-              <Bell className="h-5 w-5" />
-            </button>
-            <button className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
-              <CircleUserRound className="h-5 w-5" />
-            </button>
+            <AdminHeaderActions />
           </div>
           <div className="flex flex-col items-end">
             <h2 className="text-lg font-black text-slate-900">مرحباً بك مجدداً</h2>
