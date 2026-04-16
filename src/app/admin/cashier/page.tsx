@@ -3,6 +3,8 @@ import { getSettings } from "@/app/actions/settings";
 import { getCashierSessions } from "@/app/actions/order";
 import CashierClient from "./CashierClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function CashierPage() {
   const settings = await getSettings();
   const { stats } = await getCashierStats();

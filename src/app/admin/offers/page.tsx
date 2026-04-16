@@ -2,10 +2,12 @@ import { prisma } from "@/lib/prisma";
 import OffersClient from "./OffersClient";
 import { getSettings } from "@/app/actions/settings";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminOffersPage() {
   const settings = await getSettings();
   
-  const offersRaw = await prisma.offer.findMany({
+  const offersRaw = await (prisma as any).offer.findMany({
     include: {
       menuItems: true,
     },
@@ -16,16 +18,18 @@ export default async function AdminOffersPage() {
     orderBy: { name: "asc" },
   });
 
-  const menuItems = menuItemsRaw.map(item => ({
+  const menuItems = menuItemsRaw.map((item: any) => ({
     ...item,
-    price: Number(item.price)
+    price: Number(item.price),
+    cost_price: Number(item.cost_price)
   }));
 
   const offers = offersRaw.map((offer: any) => ({
     ...offer,
     menuItems: offer.menuItems.map((item: any) => ({
       ...item,
-      price: Number(item.price)
+      price: Number(item.price),
+      cost_price: Number(item.cost_price)
     }))
   }));
 

@@ -4,6 +4,8 @@ import { getClosedSessions } from "@/app/actions/order";
 import ArchiveClient from "./ArchiveClient";
 import { getSettings } from "@/app/actions/settings";
 
+export const dynamic = "force-dynamic";
+
 export default async function ArchivePage() {
   const session = await auth();
   if ((session?.user as any)?.role !== "Admin") {

@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { startOfDay, subDays, format } from "date-fns";
 import { arSA } from "date-fns/locale";
+import { revalidatePath } from "next/cache";
 
 export async function getAdminStats() {
   try {
@@ -128,5 +129,26 @@ export async function getCashierStats() {
     } catch (error) {
         console.error("Cashier stats error:", error);
         return { success: false, error: "فشل في جلب إحصائيات الكاشير" };
+    }
+}
+
+export async function clearAllFinancialData() {
+    try {
+        // 1. Delete all expense records
+        await (prisma as any).expense.deleteMany({});
+        
+        // 2. Safely delete hierarchically to prevent any relation constraints (OrderItems -> Orders -> Sessions)
+        await (prisma as any).orderItem.deleteMany({});
+        await (prisma as any).order.deleteMany({});
+        await (prisma as any).customerSession.deleteMany({});
+
+        revalidatePath("/admin/dashboard");
+        revalidatePath("/admin/archive");
+        revalidatePath("/admin/cashier");
+
+        return { success: true };
+    } catch (error) {
+        console.error("Reset financials error:", error);
+        return { success: false, error: "فشل في تصفير البيانات المالية" };
     }
 }
