@@ -113,56 +113,60 @@ export default function MenuClient({
 
   return (
     <div className="space-y-8 pb-32">
-      {/* Header and Search */}
-      <div className="flex items-center gap-4">
-        <div className="relative group flex-1">
-          <Search className="absolute right-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
-          <input
-            type="text"
-            placeholder="ابحث عن وجبتك المفضلة..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-[24px] border-none bg-white px-14 py-5 text-base font-medium shadow-sm outline-none ring-1 ring-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 transition-all"
-          />
-          {search && (
+      {/* Sticky Top Section: Search & Categories */}
+      <div className="sticky top-[81px] z-30 -mx-6 px-6 py-2 bg-[#f8fafc]/95 backdrop-blur-md border-b border-slate-200/40">
+        <div className="space-y-4 py-2">
+          {/* Header and Search */}
+          <div className="flex items-center gap-4">
+            <div className="relative group flex-1">
+              <Search className="absolute right-5 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
+              <input
+                type="text"
+                placeholder="ابحث عن وجبتك المفضلة..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full rounded-[24px] border-none bg-white px-14 py-4 text-base font-medium shadow-sm outline-none ring-1 ring-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-slate-900 transition-all"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute left-5 top-1/2 h-8 w-8 -translate-y-1/2 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Categories Scroll */}
+          <div className="no-scrollbar -mx-2 flex gap-2 overflow-x-auto px-2 pb-1">
+            {/* "All" Button */}
             <button
-              onClick={() => setSearch("")}
-              className="absolute left-5 top-1/2 h-8 w-8 -translate-y-1/2 flex items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+              onClick={() => setActiveCategory(null)}
+              className={`whitespace-nowrap rounded-2xl px-5 py-3 text-xs font-black transition-all duration-300 ${
+                activeCategory === null
+                  ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-105"
+                  : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-100"
+              }`}
             >
-              <X className="h-4 w-4" />
+              الكل
             </button>
-          )}
+
+            {initialCategories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setActiveCategory(category.id)}
+                className={`whitespace-nowrap rounded-2xl px-5 py-3 text-xs font-black transition-all duration-300 ${
+                  activeCategory === category.id
+                    ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-105"
+                    : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-100"
+                }`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
         </div>
-
-      </div>
-
-      {/* Categories Scroll */}
-      <div className="no-scrollbar -mx-6 flex gap-3 overflow-x-auto px-6 pb-2">
-        {/* "All" Button */}
-        <button
-          onClick={() => setActiveCategory(null)}
-          className={`whitespace-nowrap rounded-2xl px-6 py-3.5 text-sm font-black transition-all duration-300 ${
-            activeCategory === null
-              ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-105"
-              : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-100"
-          }`}
-        >
-          الكل
-        </button>
-
-        {initialCategories.map((category) => (
-          <button
-            key={category.id}
-            onClick={() => setActiveCategory(category.id)}
-            className={`whitespace-nowrap rounded-2xl px-6 py-3.5 text-sm font-black transition-all duration-300 ${
-              activeCategory === category.id
-                ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-105"
-                : "bg-white text-slate-500 hover:bg-slate-50 border border-slate-100"
-            }`}
-          >
-            {category.name}
-          </button>
-        ))}
       </div>
 
       {/* Menu Items Grid */}

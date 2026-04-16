@@ -176,7 +176,6 @@ export async function ensureActiveSession(tableNumber: number) {
 
         // If no active/pending session, and table is not explicitly blocked, create one
         if (!session) {
-            console.log(`Creating new session for table ${tableNumber}...`);
             session = await (prisma as any).customerSession.create({
                 data: {
                     table_id: table.id,
@@ -213,7 +212,6 @@ export async function serveOrder(orderId: number) {
 
 export async function printReceipt(sessionId: number) {
     try {
-        console.log("Printing receipt for session:", sessionId);
         await (prisma as any).customerSession.update({
             where: { id: sessionId },
             data: { status: "ReceiptReady" }
@@ -229,7 +227,6 @@ export async function printReceipt(sessionId: number) {
 
 export async function markPaid(sessionId: number) {
     try {
-        console.log("Marking session as paid:", sessionId);
         await (prisma as any).customerSession.update({
             where: { id: Number(sessionId) },
             data: { status: "CleaningRequired" }

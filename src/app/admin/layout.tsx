@@ -51,9 +51,9 @@ export default async function AdminLayout({
   // But let's add a small check for the root /admin access.
 
   return (
-    <div className="flex min-h-screen bg-[#fcfdfe]">
+    <div className="flex h-screen overflow-hidden bg-[#fcfdfe]">
       {/* Sidebar */}
-      <aside className="sticky top-0 hidden h-screen w-[320px] flex-col border-l border-slate-200/60 bg-white p-6 lg:flex">
+      <aside className="hidden h-screen w-[320px] flex-col border-l border-slate-200/60 bg-white p-6 lg:flex shrink-0">
         <div className="mb-8 flex items-center gap-4 px-2 shrink-0">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-900/20">
             <UtensilsCrossed className="h-7 w-7" />
@@ -70,7 +70,7 @@ export default async function AdminLayout({
           ))}
         </nav>
 
-        <div className="mt-auto surface-card p-5 !rounded-3xl border-slate-200">
+        <div className="mt-auto surface-card p-5 !rounded-3xl border-slate-200 shrink-0">
           <div className="flex items-center gap-3 mb-4">
             <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-900 font-black text-lg">
               {session.user?.name?.[0] || "A"}
@@ -96,9 +96,10 @@ export default async function AdminLayout({
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-x-hidden">
-        <header className="flex h-20 items-center justify-between px-8 py-4">
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-w-0 h-full relative">
+        {/* Fixed Header */}
+        <header className="flex h-20 items-center justify-between px-8 py-4 bg-[#fcfdfe]/80 backdrop-blur-md border-b border-slate-200/50 z-20 shrink-0">
           <div className="flex items-center gap-3">
             <button className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors">
               <Bell className="h-5 w-5" />
@@ -113,8 +114,11 @@ export default async function AdminLayout({
           </div>
         </header>
 
-        <div className="px-8 pb-10">
-          {children}
+        {/* Scrollable Content Container */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+          <div className="px-8 pb-10 pt-6">
+            {children}
+          </div>
         </div>
       </main>
     </div>
