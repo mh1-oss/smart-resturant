@@ -284,7 +284,7 @@ export default function MenuLayoutClient({
       </AnimatePresence>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200/60 bg-white/95 backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-3xl items-center justify-around px-2 py-3">
+        <div className="mx-auto flex max-w-3xl items-stretch h-full">
           {[
             { href: `/menu/${tableId}`, label: "الرئيسية", icon: House },
             { href: `/menu/${tableId}/offers`, label: "العروض", icon: Star }
@@ -292,12 +292,16 @@ export default function MenuLayoutClient({
             const Icon = item.icon;
             const isActive = pathname === item.href;
             return (
-              <Link key={item.label} href={item.href} className="flex-1 max-w-[120px]">
+              <Link 
+                key={item.label} 
+                href={item.href} 
+                className="flex-1 flex flex-col items-center justify-center py-3 transition-all relative overflow-hidden active:bg-slate-50"
+              >
                 <motion.div 
                   whileTap={{ scale: 0.85 }} 
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
                   className={cn(
-                    "flex flex-col items-center gap-1.5 py-1 px-4 rounded-2xl transition-all duration-200", 
+                    "flex flex-col items-center gap-1.5 px-4 rounded-2xl transition-all duration-200", 
                     isActive ? "text-slate-900" : "text-slate-400 active:text-slate-600"
                   )}
                 >
