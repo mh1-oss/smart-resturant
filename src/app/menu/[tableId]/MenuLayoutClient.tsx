@@ -105,13 +105,13 @@ export default function MenuLayoutClient({
 
   return (
     <>
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="popLayout" initial={false}>
         <motion.div
            key={pathname}
-           initial={{ opacity: 0, scale: 0.98, y: 10 }}
-           animate={{ opacity: 1, scale: 1, y: 0 }}
-           exit={{ opacity: 0, scale: 1.02, y: -10 }}
-           transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }} // Fast cubic-bezier for snappy feel
+           initial={{ opacity: 0, scale: 0.98 }}
+           animate={{ opacity: 1, scale: 1 }}
+           exit={{ opacity: 0, scale: 1.02 }}
+           transition={{ duration: 0.12, ease: "easeOut" }}
         >
           {children}
         </motion.div>
@@ -271,8 +271,8 @@ export default function MenuLayoutClient({
             return (
               <Link key={item.label} href={item.href} className="flex-1 max-w-[120px]">
                 <motion.div 
-                  whileTap={{ scale: 0.88 }} 
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  whileTap={{ scale: 0.85 }} 
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
                   className={cn(
                     "flex flex-col items-center gap-1.5 py-1 px-4 rounded-2xl transition-all duration-200", 
                     isActive ? "text-slate-900" : "text-slate-400 active:text-slate-600"
