@@ -11,14 +11,18 @@ import {
   Download,
   Filter,
   ArrowUpDown,
-  Table as TableIcon
+  Table as TableIcon,
+  Truck,
+  User,
+  XCircle,
+  AlertTriangle
 } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { deleteSession } from "@/app/actions/order";
 import { clearAllFinancialData } from "@/app/actions/financials";
-import { AlertTriangle, Trash2 as TrashIcon } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ArchiveClient({ initialSessions, currency }: { initialSessions: any[], currency: string }) {
   const [sessions, setSessions] = useState(initialSessions);
@@ -30,7 +34,8 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
 
   const filteredSessions = sessions.filter(s => 
     s.table?.table_number.toString().includes(search) ||
-    s.id.toString().includes(search)
+    s.id.toString().includes(search) ||
+    s.orders.some((o: any) => o.customer_name?.toLowerCase().includes(search.toLowerCase()))
   );
 
   const handleDelete = async (id: number) => {
@@ -40,6 +45,7 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
     const result = await deleteSession(id);
     if (result.success) {
       setSessions(prev => prev.filter(s => s.id !== id));
+      if (selectedSession?.id === id) setSelectedSession(null);
     } else {
       alert(result.error);
     }
@@ -49,7 +55,7 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
   const calculateTotal = (orders: any[]) => {
     return orders.reduce((sum, order) => {
       return sum + order.items.reduce((itemSum: number, item: any) => {
-        return itemSum + (item.price_at_time * item.quantity);
+        return itemSum + (Number(item.price_at_time) * item.quantity);
       }, 0);
     }, 0);
   };
@@ -68,179 +74,244 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
   };
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-[#fcfdfe]">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div className="space-y-12 pb-24">
+      {/* Header with Glass Morphism Search */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">سجل الأرشيف</h1>
-          <p className="text-sm font-bold text-slate-400">إدارة ومراجعة كافة الطلبات السابقة والجلسات المغلقة</p>
+           <h1 className="text-4xl font-black text-slate-900 leading-tight">سجل الأرشيف</h1>
+           <p className="font-bold text-slate-400 mt-2">إدارة ومراجعة كافة الطلبات السابقة والجلسات</p>
         </div>
-        
-        <div className="flex items-center gap-3">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 group-focus-within:text-blue-500 transition-colors" />
-            <input 
-              type="text"
-              placeholder="البحث برقم الطاولة أو السجل..."
-              className="pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all w-full md:w-64"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <button 
-            onClick={() => setShowResetModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl hover:bg-rose-100 transition-all font-bold text-sm"
-          >
-            <TrashIcon className="w-4 h-4" />
-            <span className="hidden sm:inline">تصفير السجل</span>
-          </button>
+
+        <div className="flex flex-wrap items-center gap-4">
+           <div className="relative group flex-1 min-w-[300px]">
+              <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-slate-900 transition-colors">
+                 <Search size={20} />
+              </div>
+              <input 
+                type="text"
+                placeholder="ابحث برقم طاولة، سجل، أو اسم عميل..."
+                className="w-full h-16 pr-12 pl-6 bg-white border-2 border-slate-100 rounded-3xl outline-none focus:border-slate-900 focus:ring-4 focus:ring-slate-900/5 transition-all font-bold text-slate-700 shadow-sm"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+           </div>
+           
+           <button 
+             onClick={() => setShowResetModal(true)}
+             className="h-16 px-8 rounded-3xl bg-rose-50 text-rose-600 border-2 border-rose-100 hover:bg-rose-100 transition-all font-black text-sm flex items-center gap-3 shrink-0"
+           >
+             <AlertTriangle size={18} />
+             تصفير الأرشيف
+           </button>
         </div>
       </div>
 
-      {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSessions.map((session) => (
-          <div key={session.id} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden group hover:shadow-xl hover:shadow-blue-500/5 transition-all duration-300">
-            {/* Session Card Header */}
-            <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <TableIcon className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-sm text-slate-500 dark:text-slate-400 block">طاولة رقم</span>
-                  <span className="font-bold text-slate-900 dark:text-white">#{session.table?.table_number}</span>
-                </div>
-              </div>
-              <button 
-                onClick={() => handleDelete(session.id)}
-                disabled={loading === session.id}
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-              >
-                {loading === session.id ? (
-                  <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-              </button>
-            </div>
+      {/* Modern Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+        {filteredSessions.map((session) => {
+          const total = calculateTotal(session.orders);
+          const hasDelivery = session.orders.some((o: any) => o.type === "Delivery");
+          const drivers = Array.from(new Set(session.orders.map((o: any) => o.driver?.name).filter(Boolean)));
 
-            {/* Session Body */}
-            <div className="p-5">
-              <div className="space-y-4 mb-6">
-                <div className="flex items-center gap-3 text-sm">
-                  <Calendar className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-600 dark:text-slate-400">
-                    {format(new Date(session.created_at), 'PPP', { locale: ar })}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Clock className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-600 dark:text-slate-400">
-                    {format(new Date(session.created_at), 'hh:mm a')} - {session.closed_at ? format(new Date(session.closed_at), 'hh:mm a') : 'مفتوح'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <Receipt className="w-4 h-4 text-slate-400" />
-                  <span className="text-slate-600">
-                    {session.orders.length} طلبات منفصلة
-                  </span>
-                </div>
+          return (
+            <motion.div 
+              key={session.id}
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="premium-card p-0 overflow-hidden group hover:shadow-2xl hover:shadow-slate-200 transition-all duration-500"
+            >
+              {/* Card Header */}
+              <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
+                 <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg">
+                       {session.table?.table_number || "خ"}
+                    </div>
+                    <div>
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">SESSION #{session.id}</p>
+                       <p className="text-sm font-bold text-slate-900">{session.table ? `طاولة ${session.table.table_number}` : "طلب خارجي"}</p>
+                    </div>
+                 </div>
+                 <button 
+                   onClick={() => handleDelete(session.id)}
+                   disabled={loading === session.id}
+                   className="h-10 w-10 rounded-xl flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 transition-all"
+                 >
+                   <Trash2 size={18} />
+                 </button>
               </div>
 
-              {/* Total Summary */}
-              <div className="p-4 rounded-xl bg-slate-50 flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-500">المجموع الكلي:</span>
-                <span className="text-xl font-bold text-blue-600">
-                  {formatCurrency(calculateTotal(session.orders), currency)}
-                </span>
-              </div>
-            </div>
+              {/* Card Body */}
+              <div className="p-6 space-y-5">
+                 <div className="flex items-center justify-between text-xs font-bold text-slate-500">
+                    <div className="flex items-center gap-2">
+                       <Calendar size={14} className="text-slate-400" />
+                       {format(new Date(session.created_at), 'd MMMM yyyy', { locale: ar })}
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <Clock size={14} className="text-slate-400" />
+                       {format(new Date(session.created_at), 'hh:mm a')}
+                    </div>
+                 </div>
 
-            {/* Footer Action */}
-            <div className="p-4 bg-slate-50/30 border-t border-slate-100 flex justify-center">
+                 {/* Driver Tag if delivery */}
+                 {hasDelivery && (
+                   <div className="bg-emerald-50 text-emerald-700 p-3 rounded-2xl border border-emerald-100 flex items-center gap-3">
+                      <Truck size={16} />
+                      <div className="flex-1">
+                         <p className="text-[10px] font-black uppercase tracking-tighter opacity-70">سائق التوصيل</p>
+                         <p className="text-xs font-black">{drivers.length > 0 ? drivers.join(", ") : "بانتظار سائق"}</p>
+                      </div>
+                   </div>
+                 )}
+
+                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+                    <div>
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">عدد الطلبات</p>
+                       <p className="text-lg font-black text-slate-700">{session.orders.length}</p>
+                    </div>
+                    <div className="text-left">
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">المبلغ الكلي</p>
+                       <p className="text-xl font-black text-blue-600">{formatCurrency(total, currency)}</p>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Card Action */}
               <button 
                 onClick={() => setSelectedSession(session)}
-                className="text-sm font-medium text-blue-600 flex items-center gap-2 hover:gap-3 transition-all"
+                className="w-full h-14 bg-white hover:bg-slate-900 hover:text-white transition-all font-black text-xs flex items-center justify-center gap-2 border-t border-slate-50 group/btn"
               >
-                عرض التفاصيل الكاملة <ChevronRight className="w-4 h-4" />
+                 عرض التفاصيل الكاملة
+                 <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
               </button>
-            </div>
-          </div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
 
-      {/* Details Modal */}
-      {selectedSession && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-200">
-            <div className="p-8 border-b border-slate-100 flex justify-between items-center">
-              <div>
-                <h3 className="text-2xl font-black text-slate-900">تفاصيل الجلسة #{selectedSession.id}</h3>
-                <p className="text-sm font-bold text-slate-400">طاولة رقم {selectedSession.table?.table_number}</p>
-              </div>
-              <button 
-                onClick={() => setSelectedSession(null)}
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-100 transition-colors"
-              >
-                <Trash2 className="w-5 h-5 text-slate-400 rotate-45" />
-              </button>
-            </div>
-            
-            <div className="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
-              <div className="space-y-6">
-                {selectedSession.orders.map((order: any, idx: number) => (
-                  <div key={order.id} className="p-4 rounded-2xl bg-slate-50">
-                    <p className="text-[10px] font-black text-slate-400 uppercase mb-3">طلب رقم {idx + 1}</p>
-                    <div className="space-y-3">
-                      {order.items.map((item: any) => (
-                        <div key={item.id} className="flex justify-between items-center">
-                          <div className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-black">
-                              {item.quantity}
-                            </span>
-                            <span className="font-bold text-slate-700">
-                                {item.item_name || item.menuItem?.name || "صنف غير معروف"}
-                            </span>
-                          </div>
-                          <span className="font-black text-slate-900">
-                            {formatCurrency(Number(item.price_at_time) * item.quantity, currency)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+      {/* Detail Drawer (Modern Side Drawer style) */}
+      <AnimatePresence>
+        {selectedSession && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedSession(null)}
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100]"
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              className="fixed inset-y-0 right-0 z-[101] w-full max-w-[500px] bg-white shadow-2xl overflow-hidden flex flex-col"
+            >
+               <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-5">
+                     <div className="h-16 w-16 rounded-[2rem] bg-slate-900 text-white flex items-center justify-center text-3xl font-black">
+                        {selectedSession.table?.table_number || "خ"}
+                     </div>
+                     <div>
+                        <h3 className="text-2xl font-black text-slate-900 mb-1">تفاصيل السجل</h3>
+                        <p className="font-bold text-slate-400 text-sm">الجلسة رقم #{selectedSession.id}</p>
+                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
+                  <button onClick={() => setSelectedSession(null)} className="h-12 w-12 rounded-2xl bg-slate-50 text-slate-400 hover:text-slate-900 flex items-center justify-center">
+                     <XCircle size={24} />
+                  </button>
+               </div>
 
-            <div className="p-8 bg-slate-50 border-t border-slate-100">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-slate-500 font-bold">المجموع الكلي:</span>
-                <span className="text-3xl font-black text-blue-600">
-                  {formatCurrency(calculateTotal(selectedSession.orders), currency)}
-                </span>
-              </div>
-              <button 
-                onClick={() => setSelectedSession(null)}
-                className="w-full h-14 mt-6 bg-slate-900 text-white rounded-2xl font-black hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                إغلاق
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+               <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-10">
+                  {selectedSession.orders.map((order: any, idx: number) => (
+                    <div key={order.id} className="space-y-6">
+                       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <h4 className="font-black text-slate-900">طلب #{idx + 1} ({order.type})</h4>
+                          <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-3 py-1 rounded-lg">
+                             {format(new Date(order.created_at), 'hh:mm a')}
+                          </span>
+                       </div>
+                       
+                       {order.driver && (
+                         <div className="flex items-center gap-3 text-emerald-600 bg-emerald-50 p-4 rounded-2xl">
+                            <Truck size={18} />
+                            <span className="text-sm font-black">تم التوصيل بواسطة: {order.driver.name}</span>
+                         </div>
+                       )}
 
-      {filteredSessions.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-            <Receipt className="w-10 h-10 text-slate-400" />
-          </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">لا يوجد سجلات</h2>
-          <p className="text-slate-500 dark:text-slate-400">لم يتم العثور على أي جلسات مغلقة في الأرشيف حالياً</p>
-        </div>
-      )}
+                       <div className="space-y-3">
+                          {order.items.map((i: any) => (
+                            <div key={i.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100/50">
+                               <div className="flex items-center gap-3">
+                                  <div className="h-8 w-8 rounded-xl bg-white flex items-center justify-center text-xs font-black shadow-sm">
+                                     {i.quantity}
+                                  </div>
+                                  <span className="font-bold text-slate-700">{i.item_name || i.menuItem?.name}</span>
+                               </div>
+                               <span className="font-black text-slate-900">{formatCurrency(Number(i.price_at_time) * i.quantity, currency)}</span>
+                            </div>
+                          ))}
+                       </div>
+                    </div>
+                  ))}
+               </div>
+
+               <div className="p-8 bg-slate-50 border-t border-slate-100">
+                  <div className="flex justify-between items-center mb-8">
+                     <span className="text-slate-500 font-bold">المجموع الكلي:</span>
+                     <span className="text-4xl font-black text-blue-600">{formatCurrency(calculateTotal(selectedSession.orders), currency)}</span>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedSession(null)}
+                    className="w-full h-16 bg-slate-900 text-white rounded-[1.5rem] font-black text-lg hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-900/10"
+                  >
+                     تمت المراجعة
+                  </button>
+               </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Reset Confirmation Modal */}
+      <AnimatePresence>
+        {showResetModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-xl"
+          >
+             <motion.div
+               initial={{ scale: 0.9, opacity: 0 }}
+               animate={{ scale: 1, opacity: 1 }}
+               exit={{ scale: 0.9, opacity: 0 }}
+               className="bg-white rounded-[3rem] p-10 max-w-lg w-full text-center shadow-2xl"
+             >
+                <div className="h-24 w-24 bg-rose-50 text-rose-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
+                   <AlertTriangle size={48} />
+                </div>
+                <h3 className="text-3xl font-black text-slate-900 mb-4">تصفير السجل المالي؟</h3>
+                <p className="text-slate-500 font-bold leading-relaxed mb-10">هذا الإجراء سيقوم بحذف كافة سجلات المبيعات والأرشيف بشكل نهائي ولا يمكن استعادتها أبداً. هل أنت متأكد؟</p>
+                <div className="flex gap-4">
+                   <button 
+                     onClick={() => setShowResetModal(false)}
+                     className="flex-1 h-16 rounded-2xl bg-slate-100 text-slate-600 font-black hover:bg-slate-200 transition-all"
+                   >
+                      إلغاء
+                   </button>
+                   <button 
+                     onClick={handleHardReset}
+                     disabled={isResetting}
+                     className="flex-1 h-16 rounded-2xl bg-rose-600 text-white font-black hover:bg-rose-700 transition-all shadow-lg shadow-rose-600/20"
+                   >
+                      {isResetting ? "جاري المسح..." : "نعم، احذف الكل"}
+                   </button>
+                </div>
+             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

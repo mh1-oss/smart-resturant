@@ -1,19 +1,13 @@
 import { auth, signOut } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
-  LayoutGrid,
-  BookOpenText,
-  TableProperties,
-  Users,
-  Settings,
-  LogOut,
   UtensilsCrossed,
-  Bell,
-  CircleUserRound,
+  LogOut,
 } from "lucide-react";
-import Link from "next/link";
 import NavItem from "./NavItem"; 
 import AdminHeaderActions from "./AdminHeaderActions";
+import MobileNav from "./MobileNav";
+import StaffBottomNav from "./StaffBottomNav";
 import { getSettings } from "@/app/actions/settings";
 
 export default async function AdminLayout({
@@ -35,6 +29,7 @@ export default async function AdminLayout({
     { href: "/admin/cashier", label: "شاشة الكاشير", iconName: "Wallet", roles: ["Admin", "Cashier"] },
     { href: "/admin/kitchen", label: "شاشة المطبخ", iconName: "Flame", roles: ["Admin", "Chef"] },
     { href: "/admin/waiter", label: "شاشة النادل", iconName: "Hand", roles: ["Admin", "Waiter"] },
+    { href: "/admin/delivery", label: "شاشة الديليفري", iconName: "Truck", roles: ["Admin", "DeliveryDriver"] },
     { href: "/admin/menu", label: "إدارة القائمة", iconName: "BookOpenText", roles: ["Admin"] },
     { href: "/admin/offers", label: "إدارة العروض", iconName: "Star", roles: ["Admin"] },
     { href: "/admin/tables", label: "إدارة الطاولات", iconName: "Grid3X3", roles: ["Admin"] },
@@ -45,15 +40,14 @@ export default async function AdminLayout({
 
   const navItems = allNavItems.filter(item => item.roles.includes(role));
 
-  // If user is not an Admin and tries to access a restricted path, redirect to their first authorized path
-  // Since we are in a layout, we can check the pathname logic in a Server Component 
-  // with a small trick or just pass it in children. 
-  // However, for simplicity and total isolation, we redirect in the page.tsx level or middleware.
-  // But let's add a small check for the root /admin access.
+  const signOutAction = async () => {
+    "use server";
+    await signOut();
+  };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fcfdfe]">
-      {/* Sidebar */}
+    <div className="flex h-screen overflow-hidden bg-[#fcfdfe] font-sans">
+      {/* Sidebar - Desktop Only */}
       <aside className="hidden h-screen w-[320px] flex-col border-l border-slate-200/60 bg-white p-6 lg:flex shrink-0">
         <div className="mb-8 flex items-center gap-4 px-2 shrink-0">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-900/20">
@@ -71,8 +65,8 @@ export default async function AdminLayout({
           ))}
         </nav>
 
-        <div className="mt-auto surface-card p-5 !rounded-3xl border-slate-200 shrink-0">
-          <div className="flex items-center gap-3 mb-4">
+        <div className="mt-auto premium-card !rounded-3xl border-slate-200 shrink-0 p-5">
+          <div className="flex items-center gap-3 mb-4 px-1">
             <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-900 font-black text-lg">
               {session.user?.name?.[0] || "A"}
             </div>
@@ -83,14 +77,9 @@ export default async function AdminLayout({
               </p>
             </div>
           </div>
-          <form
-            action={async () => {
-              "use server";
-              await signOut();
-            }}
-          >
-            <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-100 px-4 py-3 text-sm font-bold text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600">
-              <LogOut className="h-4 w-4" />
+          <form action={signOutAction}>
+            <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-50 px-4 py-4 text-sm font-bold text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600 group">
+              <LogOut className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
               <span>تسجيل الخروج</span>
             </button>
           </form>
@@ -100,23 +89,37 @@ export default async function AdminLayout({
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0 h-full relative">
         {/* Fixed Header */}
-        <header className="flex h-20 items-center justify-between px-8 py-4 bg-[#fcfdfe]/80 backdrop-blur-md border-b border-slate-200/50 z-20 shrink-0">
-          <div className="flex items-center gap-3">
+        <header className="flex h-20 items-center justify-between px-4 lg:px-8 py-4 bg-white/80 backdrop-blur-md border-b border-slate-200/50 z-50 shrink-0">
+          <div className="flex items-center gap-2 lg:gap-3">
+            <MobileNav 
+                navItems={navItems} 
+                restaurantName={settings.restaurantName}
+                user={session.user}
+                signOutAction={signOutAction}
+            />
             <AdminHeaderActions />
           </div>
           <div className="flex flex-col items-end">
-            <h2 className="text-lg font-black text-slate-900">مرحباً بك مجدداً</h2>
-            <p className="text-xs font-bold text-slate-400">{new Date().toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+            <h2 className="text-sm lg:text-lg font-black text-slate-900 leading-tight">مرحباً بك</h2>
+            <p className="text-[10px] lg:text-xs font-bold text-slate-400">
+                {new Date().toLocaleDateString('ar-SA', { weekday: 'short', day: 'numeric', month: 'short' })}
+            </p>
           </div>
         </header>
 
         {/* Scrollable Content Container */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
-          <div className="px-8 pb-10 pt-6">
-            {children}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-[#fcfdfe]">
+          <div className="px-4 lg:px-8 pb-32 lg:pb-10 pt-6">
+            <div className="max-w-7xl mx-auto">
+                {children}
+            </div>
           </div>
         </div>
+
+        {/* Mobile Bottom Nav */}
+        <StaffBottomNav role={role} />
       </main>
     </div>
   );
 }
+

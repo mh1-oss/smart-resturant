@@ -68,6 +68,43 @@ export async function createOrder(tableId: string | number, items: any[]) {
   }
 }
 
+export async function createDeliveryOrder(items: any[], customerDetails: { name: string, phone: string, address: string, locationUrl?: string }) {
+  try {
+    const order = await (prisma as any).order.create({
+      data: {
+        type: "Delivery",
+        status: "Pending",
+        customer_name: customerDetails.name,
+        customer_phone: customerDetails.phone,
+        customer_address: customerDetails.address,
+        customer_location_url: customerDetails.locationUrl,
+        items: {
+          create: await Promise.all(items.map(async (item) => {
+            const menuItem = await (prisma as any).menuItem.findUnique({
+              where: { id: item.id },
+              select: { cost_price: true, name: true }
+            })
+            return {
+              menu_item_id: item.id,
+              quantity: item.quantity,
+              price_at_time: item.price,
+              cost_at_time: menuItem?.cost_price || 0,
+              item_name: menuItem?.name || "صنف غير معروف",
+              notes: item.notes || ""
+            }
+          }))
+        }
+      }
+    });
+
+    revalidatePath("/admin/kitchen")
+    return { success: true, orderId: order.id }
+  } catch (error: any) {
+    console.error("Delivery Order creation error:", error)
+    return { success: false, error: "فشل في إنشاء طلب التوصيل" }
+  }
+}
+
 export async function updateOrderStatus(orderId: number, status: string) {
   try {
     await (prisma as any).order.update({
@@ -274,6 +311,7 @@ export async function getCustomerOrders(tableId: string | number) {
   try {
     const tableIdNum = typeof tableId === 'string' ? parseInt(tableId) : tableId;
     
+    // For DineIn orders, we check session
     const session = await (prisma as any).customerSession.findFirst({
       where: { 
         table: { table_number: tableIdNum },
@@ -281,6 +319,7 @@ export async function getCustomerOrders(tableId: string | number) {
       },
       include: {
         orders: {
+          where: { type: "DineIn" }, // Only show dine-in orders here
           include: {
             items: {
               include: { menuItem: true }
@@ -311,6 +350,42 @@ export async function getCustomerOrders(tableId: string | number) {
     };
   } catch (error) {
     return { success: false, error: "فشل في جلب الطلبات" };
+  }
+}
+
+export async function getDeliveryOrders(phone: string) {
+  try {
+    const ordersRaw = await (prisma as any).order.findMany({
+      where: { 
+        customer_phone: phone,
+        type: "Delivery"
+      },
+      include: {
+        items: {
+          include: { menuItem: true }
+        }
+      },
+      orderBy: { created_at: 'desc' }
+    });
+
+    return { 
+        success: true, 
+        orders: ordersRaw.map((o: any) => ({
+            ...o,
+            items: o.items.map((i: any) => ({
+                ...i,
+                price_at_time: Number(i.price_at_time),
+                cost_at_time: Number(i.cost_at_time),
+                menuItem: i.menuItem ? {
+                    ...i.menuItem,
+                    price: Number(i.menuItem.price),
+                    cost_price: Number(i.menuItem.cost_price)
+                } : null
+            }))
+        }))
+    };
+  } catch (error) {
+    return { success: false, error: "فشل في جلب طلبات التوصيل" };
   }
 }
 
@@ -483,7 +558,8 @@ export async function getClosedSessions() {
                 table: true,
                 orders: {
                     include: {
-                        items: { include: { menuItem: true } }
+                        items: { include: { menuItem: true } },
+                        driver: { select: { name: true } }
                     }
                 }
             },
@@ -524,3 +600,79 @@ export async function deleteSession(sessionId: number) {
     }
 }
 
+export async function claimDeliveryOrder(orderId: number, driverId: string) {
+    try {
+        await (prisma as any).order.update({
+            where: { id: orderId },
+            data: { 
+                driver_id: driverId,
+                status: "Shipped"
+            }
+        });
+        revalidatePath("/admin/delivery");
+        revalidatePath("/admin/kitchen");
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "فشل في استلام طلب التوصيل" };
+    }
+}
+
+export async function markOrderDelivered(orderId: number) {
+    try {
+        await (prisma as any).order.update({
+            where: { id: orderId },
+            data: { status: "Delivered" }
+        });
+        revalidatePath("/admin/delivery");
+        revalidatePath("/admin/archive");
+        return { success: true };
+    } catch (error) {
+        return { success: false, error: "فشل في تحديث حالة التوصيل" };
+    }
+}
+
+export async function getDriverUpdates(driverId: string) {
+    try {
+        const [availableOrdersRaw, myActiveOrdersRaw] = await Promise.all([
+            (prisma as any).order.findMany({
+                where: { 
+                    type: "Delivery",
+                    status: "Ready",
+                    driver_id: null
+                },
+                include: { items: { include: { menuItem: true } } },
+                orderBy: { created_at: "asc" }
+            }),
+            (prisma as any).order.findMany({
+                where: { 
+                    driver_id: driverId,
+                    status: "Shipped"
+                },
+                include: { items: { include: { menuItem: true } } },
+                orderBy: { created_at: "asc" }
+            })
+        ]);
+
+        const formatOrders = (orders: any[]) => orders.map(o => ({
+            ...o,
+            items: o.items.map((i: any) => ({
+                ...i,
+                price_at_time: Number(i.price_at_time),
+                cost_at_time: Number(i.cost_at_time),
+                menuItem: i.menuItem ? {
+                    ...i.menuItem,
+                    price: Number(i.menuItem.price),
+                    cost_price: Number(i.menuItem.cost_price)
+                } : null
+            }))
+        }));
+
+        return { 
+            success: true, 
+            availableOrders: formatOrders(availableOrdersRaw), 
+            myOrders: formatOrders(myActiveOrdersRaw) 
+        };
+    } catch (error) {
+        return { success: false, error: "فشل في جلب تحديثات الديليفري" };
+    }
+}

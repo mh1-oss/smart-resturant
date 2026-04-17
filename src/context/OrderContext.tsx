@@ -19,11 +19,24 @@ export function OrderProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchOrders = async () => {
-    if (!tableId) return;
     try {
-      const result = await getCustomerOrders(tableId as string);
-      if (result.success && result.orders) {
-        setOrders(result.orders);
+      if (tableId) {
+        // DineIn logic
+        const result = await getCustomerOrders(tableId as string);
+        if (result.success && result.orders) {
+          setOrders(result.orders);
+        }
+      } else {
+        // Delivery logic: Check localStorage for phone number
+        const savedPhone = typeof window !== "undefined" ? localStorage.getItem("delivery_phone") : null;
+        if (savedPhone) {
+          // Import dynamic to avoid circular if needed, but here it's fine
+          const { getDeliveryOrders } = await import("@/app/actions/order");
+          const result = await getDeliveryOrders(savedPhone);
+          if (result.success && result.orders) {
+            setOrders(result.orders);
+          }
+        }
       }
     } catch (error) {
       console.error("OrderContext: Failed to fetch orders", error);

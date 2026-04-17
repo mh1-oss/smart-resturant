@@ -1,19 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import MenuClient from "./MenuClient";
+import MenuClient from "../[tableId]/MenuClient";
 import { getSettings } from "@/app/actions/settings";
-import { getCustomerOrders, ensureActiveSession } from "@/app/actions/order";
+import { getDeliveryOrders } from "@/app/actions/order";
 
-interface PageProps {
-  params: Promise<{ tableId: string }>;
-}
-
-export default async function MenuPage({ params }: PageProps) {
-  const { tableId } = await params;
-  const tableIdNum = parseInt(tableId);
+export default async function DeliveryMenuPage() {
   const settings = await getSettings();
-  
-  // Ensure we have an active session for this table scanning
-  await ensureActiveSession(tableIdNum);
   
   // Fetch categories and items
   const categoriesRaw = await prisma.category.findMany({
@@ -55,18 +46,14 @@ export default async function MenuPage({ params }: PageProps) {
     })
   }));
 
-  // Fetch initial active orders for the table
-  let initialOrders: any[] = [];
-  const orderResult = await getCustomerOrders(tableId);
-  if (orderResult.success) {
-    initialOrders = orderResult.orders || [];
-  }
-
+  // For delivery, we don't have a tableId to pass to MenuClient, but MenuClient takes it as a prop.
+  // We'll pass a dummy or empty tableId.
+  
   return (
     <div>
       <MenuClient 
         initialCategories={categories} 
-        tableId={tableId} 
+        tableId="delivery" 
         currency={settings.currency}
         taxRate={settings.taxRate}
       />

@@ -21,6 +21,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   expenses      Expense[]
+  orders        Order[]   @relation("DriverOrders")
 }
 
 model Account {
@@ -98,13 +99,20 @@ model CustomerSession {
 }
 
 model Order {
-  id         Int             @id @default(autoincrement())
-  session_id Int
-  status     OrderStatus     @default(Pending)
-  created_at DateTime        @default(now())
-  waiter_id  String?
-  session    CustomerSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
-  items      OrderItem[]
+  id               Int             @id @default(autoincrement())
+  session_id       Int?
+  type             OrderType       @default(DineIn)
+  status           OrderStatus     @default(Pending)
+  customer_name    String?
+  customer_phone   String?
+  customer_address String?
+  customer_location_url String?
+  created_at       DateTime        @default(now())
+  waiter_id        String?
+  driver_id        String?
+  session          CustomerSession? @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  driver           User?            @relation("DriverOrders", fields: [driver_id], references: [id], onDelete: SetNull)
+  items            OrderItem[]
 }
 
 model OrderItem {
@@ -141,6 +149,7 @@ enum Role {
   Chef
   Waiter
   Cashier
+  DeliveryDriver
 }
 
 enum TableStatus {
@@ -160,8 +169,15 @@ enum OrderStatus {
   Pending
   Preparing
   Ready
+  Shipped
+  Delivered
   Served
   Cancelled
+}
+
+enum OrderType {
+  DineIn
+  Delivery
 }
 
 model Expense {

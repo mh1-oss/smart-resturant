@@ -20,7 +20,7 @@ export default async function CustomerLayout({
       <OrderProvider>
         <div className="min-h-screen bg-[#f8fafc] pb-24 text-right" dir="rtl">
           {/* App Header */}
-          <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 transition-all duration-300">
+          <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-none transition-all duration-300">
           <div className="mx-auto max-w-3xl px-6 py-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4 relative">
             {/* Right Side (Logo) - Pinned to right in RTL */}
             <div className="flex-1 flex justify-start">
@@ -42,8 +42,8 @@ export default async function CustomerLayout({
           </div>
           </header>
 
-          <main className="mx-auto max-w-3xl min-h-[60vh] px-6">
-            <MenuLayoutClient currency={settings.currency} taxRate={settings.taxRate}>
+          <main className="min-h-[60vh]">
+            <MenuLayoutClient currency={settings.currency} taxRate={settings.taxRate} tableId={tableId}>
               {children}
             </MenuLayoutClient>
           </main>
