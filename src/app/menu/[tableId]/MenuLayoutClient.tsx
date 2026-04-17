@@ -43,6 +43,14 @@ export default function MenuLayoutClient({
   const [isRequesting, setIsRequesting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Navigation Loading State
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  useEffect(() => {
+    setIsPageLoading(true);
+    const timer = setTimeout(() => setIsPageLoading(false), 800);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
   // Lock body scroll when any panel is open
   useEffect(() => {
     if (showCartPanel || showOrdersPanel || showBillModal) {
@@ -105,13 +113,28 @@ export default function MenuLayoutClient({
 
   return (
     <>
-      <AnimatePresence mode="popLayout" initial={false}>
+      {/* Top Loading Progress Bar */}
+      <div className="fixed top-0 left-0 right-0 z-[1000] h-[3px] overflow-hidden pointer-events-none">
+        <AnimatePresence>
+          {isPageLoading && (
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: "0%" }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: "easeInOut" }}
+              className="h-full w-full bg-gradient-to-r from-slate-900 via-amber-500 to-slate-900 shadow-[0_0_10px_rgba(245,158,11,0.5)]"
+            />
+          )}
+        </AnimatePresence>
+      </div>
+
+      <AnimatePresence mode="wait">
         <motion.div
            key={pathname}
-           initial={{ opacity: 0, scale: 0.98 }}
-           animate={{ opacity: 1, scale: 1 }}
-           exit={{ opacity: 0, scale: 1.02 }}
-           transition={{ duration: 0.12, ease: "easeOut" }}
+           initial={{ opacity: 0, scale: 0.98, y: 12 }}
+           animate={{ opacity: 1, scale: 1, y: 0 }}
+           exit={{ opacity: 0, scale: 1.02, y: -12 }}
+           transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }} // Apple-style fluid easing
         >
           {children}
         </motion.div>
