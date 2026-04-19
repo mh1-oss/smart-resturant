@@ -14,6 +14,7 @@ export default async function WaiterPage() {
         },
         include: {
           orders: {
+            where: { type: "DineIn" },
             include: {
               items: { include: { menuItem: true } }
             }
@@ -46,7 +47,10 @@ export default async function WaiterPage() {
 
   // Get tasks for the Waiter dashboard
   const readyOrdersRaw = await prisma.order.findMany({
-    where: { status: "Ready" },
+    where: { 
+        status: "Ready",
+        type: "DineIn" 
+    },
     include: {
       session: { include: { table: true } },
       items: { include: { menuItem: true } }

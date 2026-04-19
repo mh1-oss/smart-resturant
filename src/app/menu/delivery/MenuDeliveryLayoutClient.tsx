@@ -12,15 +12,23 @@ import {
   Truck,
   Phone,
   MapPin,
-  User
+  Navigation,
+  User,
+  Zap
 } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn, formatCurrency } from "@/lib/utils";
 import { createDeliveryOrder } from "@/app/actions/order";
 import { useCart } from "@/context/CartContext";
 import { useOrder } from "@/context/OrderContext";
+
+declare global {
+  interface Window {
+    L: any;
+  }
+}
 
 export default function MenuDeliveryLayoutClient({ 
   children,
@@ -39,7 +47,11 @@ export default function MenuDeliveryLayoutClient({
   const [showOrdersPanel, setShowOrdersPanel] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
+  const [showMap, setShowMap] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [mapObj, setMapObj] = useState<any>(null);
+  const [markerObj, setMarkerObj] = useState<any>(null);
 
   const [formData, setFormData] = useState({ name: "", phone: "", address: "", locationUrl: "" });
 
@@ -52,9 +64,86 @@ export default function MenuDeliveryLayoutClient({
     });
   }, []);
 
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      alert("متصفحك لا يدعم خاصية تحديد الموقع");
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setFormData(prev => ({ ...prev, locationUrl: `https://www.google.com/maps?q=${latitude},${longitude}` }));
+        setIsLocating(false);
+        setShowMap(true);
+        // Initialize or move map
+        setTimeout(() => initMap(latitude, longitude), 100);
+      },
+      (error) => {
+        setIsLocating(false);
+        console.error("Geolocation error:", error.code, error.message);
+        let msg = "فشل تحديد الموقع";
+        if (error.code === 1) msg = "يرجى منح إذن الوصول للموقع في المتصفح";
+        else if (error.code === 2) msg = "الموقع غير متاح حالياً (GPS)";
+        else if (error.code === 3) msg = "انتهى وقت المحاولة، يرجى المحاولة مرة أخرى";
+        alert(msg);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  };
+
+  const initMap = (lat: number, lng: number) => {
+    if (typeof window === 'undefined' || !window.L) return;
+
+    const L = window.L;
+    const container = document.getElementById('map-picker');
+    if (!container) return;
+
+    // Remove existing map if any
+    if (mapObj) {
+        mapObj.remove();
+    }
+
+    const newMap = L.map('map-picker').setView([lat, lng], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(newMap);
+
+    // Custom SVG Marker Icon for reliability
+    const customIcon = L.divIcon({
+        html: `<div class="bg-rose-500 w-8 h-8 rounded-full border-4 border-white shadow-lg flex items-center justify-center animate-pulse">
+                <div class="w-2 h-2 bg-white rounded-full"></div>
+              </div>`,
+        className: 'custom-leaflet-marker',
+        iconSize: [32, 32],
+        iconAnchor: [16, 32]
+    });
+
+    const newMarker = L.marker([lat, lng], { 
+        draggable: true,
+        icon: customIcon
+    }).addTo(newMap);
+
+    newMarker.on('dragend', function(event: any) {
+        const marker = event.target;
+        const position = marker.getLatLng();
+        setFormData(prev => ({ 
+            ...prev, 
+            locationUrl: `https://www.google.com/maps?q=${position.lat},${position.lng}` 
+        }));
+    });
+
+    setMapObj(newMap);
+    setMarkerObj(newMarker);
+  };
+
   const handleCheckoutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.address) return;
+    if (!formData.name) return alert("يرجى إدخال الاسم");
+    if (!formData.phone) return alert("يرجى إدخال رقم الهاتف");
+    if (!formData.address) return alert("يرجى إدخال تفاصيل العنوان");
+    if (cart.length === 0) return alert("سلة التسوق فارغة");
 
     setIsSubmitting(true);
     try {
@@ -74,9 +163,12 @@ export default function MenuDeliveryLayoutClient({
           setShowCartPanel(false);
           setShowOrdersPanel(true);
         }, 3000);
+      } else {
+        alert(result.error || "فشل في إتمام الطلب، يرجى المحاولة لاحقاً");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert("حدث خطأ تقني: " + (err.message || "فشل الاتصال بالسيرفر"));
     } finally {
       setIsSubmitting(false);
     }
@@ -167,7 +259,6 @@ export default function MenuDeliveryLayoutClient({
                    <span className="font-bold text-slate-500">الإجمالي النهائي</span>
                    <span className="text-2xl font-black text-slate-900">{formatCurrency(totalPrice * (1 + (Number(taxRate) / 100)), currency)}</span>
                  </div>
-                 {/* This is the FIX: A very CLEAR and BOLD button */}
                  <button 
                   onClick={() => setShowCheckoutModal(true)} 
                   className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-xl shadow-slate-900/20 active:scale-95 transition-transform flex items-center justify-center gap-3"
@@ -183,7 +274,7 @@ export default function MenuDeliveryLayoutClient({
         {showCheckoutModal && (
           <div key="checkout-modal" className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center">
              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !isSubmitting && setShowCheckoutModal(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
-             <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="relative w-full max-w-md bg-white p-8 rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden">
+             <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="relative w-full max-w-md bg-white p-8 rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden overflow-y-auto max-h-[90vh]">
                {isSuccess ? (
                   <div className="text-center py-10 space-y-4">
                     <div className="h-20 w-20 mx-auto rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center animate-bounce"><CheckCircle2 size={48} /></div>
@@ -206,10 +297,46 @@ export default function MenuDeliveryLayoutClient({
                         <MapPin className="absolute right-4 top-4 text-slate-400 size-5" />
                         <textarea required placeholder="تفاصيل العنوان (المنطقة، الشارع، الدار...)" className="w-full h-24 pr-12 pl-4 py-4 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold resize-none" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} />
                       </div>
-                      <div className="relative">
-                        <ShoppingBag className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 size-5" />
-                        <input type="url" placeholder="رابط الموقع (Google Maps)" className="w-full h-14 pr-12 pl-4 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold" value={formData.locationUrl} onChange={e => setFormData({...formData, locationUrl: e.target.value})} />
+                      <div className="relative group">
+                        <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 size-5" />
+                        <input type="url" placeholder="رابط الموقع (Google Maps)" className="w-full h-14 pr-12 pl-32 rounded-xl bg-slate-50 border-none ring-1 ring-slate-200 font-bold text-sm" value={formData.locationUrl} onChange={e => setFormData({...formData, locationUrl: e.target.value})} />
+                          <button 
+                            type="button"
+                            onClick={handleGetLocation}
+                            disabled={isLocating}
+                            className={cn(
+                              "absolute left-2 top-1/2 -translate-y-1/2 h-10 px-3 text-white text-[10px] font-black rounded-lg shadow-lg active:scale-95 transition-all flex items-center gap-1",
+                              isLocating ? "bg-slate-400" : "bg-slate-900"
+                            )}
+                          >
+                            {isLocating ? (
+                              <div className="flex items-center gap-1">
+                                <div className="h-2 w-2 rounded-full bg-white animate-bounce [animation-delay:-0.3s]"></div>
+                                <div className="h-2 w-2 rounded-full bg-white animate-bounce [animation-delay:-0.15s]"></div>
+                                <div className="h-2 w-2 rounded-full bg-white animate-bounce"></div>
+                              </div>
+                            ) : (
+                              <>
+                                <Navigation size={12} className="rotate-45" />
+                                {showMap ? "تحديث الموقع" : "حدد موقعي"}
+                              </>
+                            )}
+                          </button>
                       </div>
+
+                      {showMap && (
+                        <div className="space-y-2">
+                           <div className="flex items-center justify-between px-1">
+                              <span className="text-[10px] font-black text-slate-400 uppercase">حرك الدبوس لتحديد منزلك بدقة</span>
+                              <span className="text-[10px] font-black text-amber-500 flex items-center gap-1 animate-pulse">
+                                 <Zap size={10} /> تحديد دقيق
+                              </span>
+                           </div>
+                           <div id="map-picker" className="h-48 w-full rounded-2xl border-2 border-slate-100 overflow-hidden z-10 shadow-inner">
+                              {/* Map will be rendered here */}
+                           </div>
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-4">
                       <button type="button" onClick={() => setShowCheckoutModal(false)} className="flex-1 h-14 font-black text-slate-500 bg-slate-100 rounded-xl">رجوع</button>
@@ -252,6 +379,39 @@ export default function MenuDeliveryLayoutClient({
                           </div>
                         ))}
                      </div>
+
+                     {order.driver && (
+                        <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
+                          <div className="flex items-center gap-3 text-right">
+                            <div className="h-10 w-10 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black">
+                              {order.driver.name?.[0] || <User size={14} />}
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider leading-none mb-1">السائق</p>
+                              <p className="text-sm font-black text-slate-900 leading-none">{order.driver.name}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                             <a 
+                               href={`tel:${order.driver.phone}`} 
+                               className="h-10 w-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center active:scale-95 transition-transform"
+                               title="اتصال هاتف"
+                             >
+                                <Phone size={16} />
+                             </a>
+                             {order.driver.phone && (
+                               <a 
+                                 href={`https://wa.me/${order.driver.phone.replace(/\s+/g, '')}`} 
+                                 target="_blank"
+                                 className="h-10 px-4 rounded-xl bg-emerald-50 text-emerald-700 text-[10px] font-black flex items-center gap-2 active:scale-95 transition-transform"
+                                 title="مراسلة واتساب"
+                               >
+                                  واتساب
+                               </a>
+                             )}
+                          </div>
+                        </div>
+                      )}
                    </div>
                  ))}
                </div>

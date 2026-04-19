@@ -135,8 +135,12 @@ export default function MobileNav({ navItems, restaurantName, user, signOutActio
 
             {/* Bottom Section */}
             <div className="p-6 bg-slate-50/50 border-t border-slate-100 space-y-4 shrink-0">
-              <div className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                  <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg">
+              <Link 
+                href="/admin/profile" 
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 active:bg-slate-50 transition-colors group"
+              >
+                  <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg group-active:scale-95 transition-transform">
                   {user?.name?.[0] || "A"}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -145,7 +149,8 @@ export default function MobileNav({ navItems, restaurantName, user, signOutActio
                         {user?.role === "Admin" ? "المدير العام" : user?.role || "موظف"}
                     </p>
                   </div>
-              </div>
+                  <ChevronRight size={16} className="text-slate-300" />
+              </Link>
 
               <div className="grid grid-cols-2 gap-3">
                 {isAdmin && (

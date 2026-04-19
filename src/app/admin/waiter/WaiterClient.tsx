@@ -127,7 +127,7 @@ export default function WaiterClient({
                                     "h-12 w-12 rounded-2xl flex items-center justify-center font-black text-lg shadow-lg transition-transform group-hover:scale-110",
                                     order.waiter_id === userId ? "bg-emerald-500 text-white shadow-emerald-500/20" : "bg-slate-900 text-white shadow-slate-900/20"
                                 )}>
-                                    {order.session.table.table_number}
+                                    {order.session?.table?.table_number || "?"}
                                 </span>
                                 <div>
                                     <p className="text-xs font-black text-slate-400 uppercase tracking-wider">طاولة</p>

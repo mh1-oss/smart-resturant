@@ -70,38 +70,77 @@ export async function createOrder(tableId: string | number, items: any[]) {
 
 export async function createDeliveryOrder(items: any[], customerDetails: { name: string, phone: string, address: string, locationUrl?: string }) {
   try {
-    const order = await (prisma as any).order.create({
-      data: {
-        type: "Delivery",
-        status: "Pending",
-        customer_name: customerDetails.name,
-        customer_phone: customerDetails.phone,
-        customer_address: customerDetails.address,
-        customer_location_url: customerDetails.locationUrl,
-        items: {
-          create: await Promise.all(items.map(async (item) => {
-            const menuItem = await (prisma as any).menuItem.findUnique({
-              where: { id: item.id },
-              select: { cost_price: true, name: true }
-            })
-            return {
-              menu_item_id: item.id,
-              quantity: item.quantity,
-              price_at_time: item.price,
-              cost_at_time: menuItem?.cost_price || 0,
-              item_name: menuItem?.name || "صنف غير معروف",
-              notes: item.notes || ""
-            }
-          }))
-        }
-      }
-    });
+    if (!items || items.length === 0) {
+      return { success: false, error: "السلة فارغة" };
+    }
 
-    revalidatePath("/admin/kitchen")
-    return { success: true, orderId: order.id }
+    // Prepare order items with proper types
+    const orderItemsData = await Promise.all(items.map(async (item) => {
+        const menuItem = await (prisma as any).menuItem.findUnique({
+            where: { id: Number(item.id) },
+            select: { cost_price: true, name: true }
+        });
+        
+        return {
+            menu_item_id: Number(item.id),
+            quantity: Number(item.quantity),
+            price_at_time: Number(item.price),
+            cost_at_time: Number(menuItem?.cost_price || 0),
+            item_name: menuItem?.name || item.name || "صنف غير معروف",
+            notes: item.notes || ""
+        };
+    }));
+
+    let order;
+    try {
+        // Primary Attempt with all new fields
+        order = await (prisma as any).order.create({
+            data: {
+                type: "Delivery",
+                status: "Pending",
+                customer_name: customerDetails.name,
+                customer_phone: customerDetails.phone,
+                customer_address: customerDetails.address,
+                customer_location_url: customerDetails.locationUrl || null,
+                items: {
+                    create: orderItemsData
+                }
+            }
+        });
+    } catch (prismaError: any) {
+        console.error("Primary creation failed, trying extreme fallback with notes append...", prismaError.message);
+        
+        // Final fallback: also append location URL to address as a safety measure
+        const safeAddress = customerDetails.locationUrl 
+            ? `${customerDetails.address} \n(الموقع: ${customerDetails.locationUrl})`
+            : customerDetails.address;
+
+        order = await (prisma as any).order.create({
+            data: {
+                type: "Delivery",
+                status: "Pending",
+                customer_name: customerDetails.name,
+                customer_phone: customerDetails.phone,
+                customer_address: safeAddress,
+                items: {
+                    create: items.map(item => ({
+                        menu_item_id: Number(item.id),
+                        quantity: Number(item.quantity),
+                        price_at_time: Number(item.price),
+                        item_name: item.name || "صنف غير معروف",
+                        notes: item.notes || ""
+                    }))
+                }
+            }
+        });
+    }
+
+    revalidatePath("/admin/kitchen");
+    revalidatePath("/admin/delivery");
+    return { success: true, orderId: order.id };
   } catch (error: any) {
-    console.error("Delivery Order creation error:", error)
-    return { success: false, error: "فشل في إنشاء طلب التوصيل" }
+    console.error("Final Order Error:", error);
+    return { success: false, error: "فشل في إنشاء الطلب: " + (error.message || "خطأ غير معروف") };
   }
 }
 
@@ -355,24 +394,63 @@ export async function getCustomerOrders(tableId: string | number) {
 
 export async function getDeliveryOrders(phone: string) {
   try {
-    const ordersRaw = await (prisma as any).order.findMany({
-      where: { 
-        customer_phone: phone,
-        type: "Delivery"
-      },
-      include: {
-        items: {
-          include: { menuItem: true }
+    let ordersRaw;
+    try {
+        // Primary Attempt: Include driver info
+        ordersRaw = await (prisma as any).order.findMany({
+            where: { 
+                customer_phone: phone,
+                type: "Delivery"
+            },
+            include: {
+                items: {
+                    include: { menuItem: true }
+                },
+                driver: {
+                    select: {
+                        name: true,
+                        phone: true
+                    }
+                }
+            },
+            orderBy: { created_at: 'desc' }
+        });
+    } catch (e) {
+        console.warn("getDeliveryOrders primary fetch failed (likely schema sync delay), using fallback...");
+        // Fallback: Fetch without driver info
+        ordersRaw = await (prisma as any).order.findMany({
+            where: { 
+                customer_phone: phone,
+                type: "Delivery"
+            },
+            include: {
+                items: {
+                    include: { menuItem: true }
+                }
+            },
+            orderBy: { created_at: 'desc' }
+        });
+
+        // Manually fetch driver info for each order if driver_id exists
+        for (let order of ordersRaw) {
+            if (order.driver_id) {
+                try {
+                    const driverData: any[] = await prisma.$queryRaw`SELECT name, phone FROM "User" WHERE id = ${order.driver_id} LIMIT 1`;
+                    if (driverData.length > 0) {
+                        order.driver = driverData[0];
+                    }
+                } catch (err) {
+                    console.error("Manual driver fetch failed:", err);
+                }
+            }
         }
-      },
-      orderBy: { created_at: 'desc' }
-    });
+    }
 
     return { 
         success: true, 
-        orders: ordersRaw.map((o: any) => ({
+        orders: (ordersRaw || []).map((o: any) => ({
             ...o,
-            items: o.items.map((i: any) => ({
+            items: (o.items || []).map((i: any) => ({
                 ...i,
                 price_at_time: Number(i.price_at_time),
                 cost_at_time: Number(i.cost_at_time),
@@ -384,7 +462,8 @@ export async function getDeliveryOrders(phone: string) {
             }))
         }))
     };
-  } catch (error) {
+  } catch (error: any) {
+    console.error("Critical fetch error in getDeliveryOrders:", error.message);
     return { success: false, error: "فشل في جلب طلبات التوصيل" };
   }
 }
@@ -487,7 +566,10 @@ export async function getWaiterUpdates() {
                 orderBy: { table_number: "asc" }
             }),
             (prisma as any).order.findMany({
-                where: { status: "Ready" },
+                where: { 
+                    status: "Ready",
+                    type: "DineIn" 
+                },
                 include: {
                     session: { include: { table: true } },
                     items: { include: { menuItem: true } }
@@ -537,12 +619,23 @@ export async function getWaiterUpdates() {
             }))
         }));
 
+        const formatSession = (s: any) => ({
+            id: s.id,
+            table_id: s.table_id,
+            status: s.status,
+            created_at: s.created_at.toISOString(),
+            closed_at: s.closed_at?.toISOString() || null,
+            bill_waiter_id: s.bill_waiter_id,
+            cleaning_waiter_id: s.cleaning_waiter_id,
+            table: s.table
+        });
+
         return { 
             success: true, 
             tables, 
             readyOrders, 
-            billTasks: billTasksRaw, 
-            cleanTasks: cleanTasksRaw 
+            billTasks: billTasksRaw.map(formatSession), 
+            cleanTasks: cleanTasksRaw.map(formatSession) 
         };
     } catch (error) {
         console.error("Waiter updates fetch error:", error);

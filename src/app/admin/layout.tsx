@@ -1,11 +1,13 @@
 import { auth, signOut } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import {
   UtensilsCrossed,
   LogOut,
 } from "lucide-react";
 import NavItem from "./NavItem"; 
 import AdminHeaderActions from "./AdminHeaderActions";
+import { SidebarUserCard } from "./SidebarUserCard";
 import MobileNav from "./MobileNav";
 import StaffBottomNav from "./StaffBottomNav";
 import { getSettings } from "@/app/actions/settings";
@@ -65,25 +67,10 @@ export default async function AdminLayout({
           ))}
         </nav>
 
-        <div className="mt-auto premium-card !rounded-3xl border-slate-200 shrink-0 p-5">
-          <div className="flex items-center gap-3 mb-4 px-1">
-            <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-900 font-black text-lg">
-              {session.user?.name?.[0] || "A"}
-            </div>
-            <div>
-              <p className="text-sm font-black text-slate-900">{session.user?.name}</p>
-              <p className="text-xs font-bold text-slate-400 capitalize">
-                {(session.user as any).role === "Admin" ? "المدير العام" : (session.user as any).role}
-              </p>
-            </div>
-          </div>
-          <form action={signOutAction}>
-            <button className="flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-50 px-4 py-4 text-sm font-bold text-slate-600 transition-colors hover:bg-rose-50 hover:text-rose-600 group">
-              <LogOut className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-              <span>تسجيل الخروج</span>
-            </button>
-          </form>
-        </div>
+        <SidebarUserCard 
+          user={session.user as any} 
+          signOutAction={signOutAction} 
+        />
       </aside>
 
       {/* Main Content Area */}

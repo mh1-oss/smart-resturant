@@ -31,19 +31,23 @@ export default async function MenuPage({ params }: PageProps) {
     include: { menuItems: true }
   });
 
+  // Pre-calculate discounts for all items to avoid O(N*M) complexity in the loop
+  const discountMap = new Map<number, number>();
+  activeOffers.forEach((offer: any) => {
+    offer.menuItems.forEach((item: any) => {
+      const currentMax = discountMap.get(item.id) || 0;
+      if ((offer.discount_percentage || 0) > currentMax) {
+        discountMap.set(item.id, offer.discount_percentage || 0);
+      }
+    });
+  });
+
   // Convert Decimal to Number for serialization compatibility
   const categories = categoriesRaw.map((cat: any) => ({
     ...cat,
     menuItems: cat.menuItems.map((item: any) => {
       const itemPrice = Number(item.price);
-      // Find the best discount percentage from active offers for this item
-      const applicableOffers = activeOffers.filter((o: any) => 
-        o.menuItems.some((mi: any) => mi.id === item.id)
-      );
-      
-      const maxDiscount = applicableOffers.reduce((max: number, offer: any) => 
-        Math.max(max, offer.discount_percentage || 0), 0
-      );
+      const maxDiscount = discountMap.get(item.id) || 0;
 
       return {
         ...item,
