@@ -76,7 +76,10 @@ export default function MenuDeliveryLayoutClient({
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setFormData(prev => ({ ...prev, locationUrl: `https://www.google.com/maps?q=${latitude},${longitude}` }));
+        const locUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+        console.log("Captured Location:", locUrl);
+        setFormData(prev => ({ ...prev, locationUrl: locUrl }));
+        localStorage.setItem("delivery_locationUrl", locUrl);
         setIsLocating(false);
         setShowMap(true);
         // Initialize or move map

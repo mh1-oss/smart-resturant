@@ -94,13 +94,17 @@ export async function createDeliveryOrder(items: any[], customerDetails: { name:
     let order;
     try {
         // Primary Attempt with all new fields
+        const enhancedAddress = customerDetails.locationUrl 
+            ? `${customerDetails.address}\n(الموقع الجغرافي: ${customerDetails.locationUrl})`
+            : customerDetails.address;
+
         order = await (prisma as any).order.create({
             data: {
                 type: "Delivery",
                 status: "Pending",
                 customer_name: customerDetails.name,
                 customer_phone: customerDetails.phone,
-                customer_address: customerDetails.address,
+                customer_address: enhancedAddress,
                 customer_location_url: customerDetails.locationUrl || null,
                 items: {
                     create: orderItemsData

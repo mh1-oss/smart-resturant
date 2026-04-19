@@ -92,9 +92,9 @@ export default function DeliveryClient({
   const extractCoordinates = (str?: string) => {
     if (!str) return null;
     const decodedStr = decodeURIComponent(str);
-    // Regex to find coordinates like 33.123, 44.123 or 33, 44
-    // Handles integers or decimals, with optional q= or @ prefix
-    const regex = /(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)/;
+    // Robust regex to find lat/lng coordinates in URLs or strings
+    // Matches patterns like: q=33.123,44.123 or @33.123,44.123,17z or 33.123, 44.123
+    const regex = /(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)/;
     const match = decodedStr.match(regex);
     if (match) {
         return `${match[1]},${match[2]}`;
