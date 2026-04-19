@@ -8,7 +8,9 @@ import { formatCurrency, cn } from "@/lib/utils";
 
 export default function MenuClient({
   initialCategories,
+  tableId,
   currency,
+  taxRate
 }: {
   initialCategories: any[];
   tableId: string;

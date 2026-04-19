@@ -179,7 +179,7 @@ export default function MenuDeliveryLayoutClient({
   return (
     <>
       <div className="min-h-screen bg-[#f8fafc]">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           <motion.div
              key={pathname}
              initial={{ opacity: 0 }}
