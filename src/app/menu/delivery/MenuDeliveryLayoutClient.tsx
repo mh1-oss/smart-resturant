@@ -33,11 +33,13 @@ declare global {
 export default function MenuDeliveryLayoutClient({ 
   children,
   currency,
-  taxRate
+  taxRate,
+  deliveryFee
 }: { 
   children: React.ReactNode,
   currency: string,
-  taxRate: string
+  taxRate: string,
+  deliveryFee: string
 }) {
   const pathname = usePathname();
   const { cart, updateQuantity, totalPrice, totalItems, clearCart } = useCart();
@@ -254,11 +256,19 @@ export default function MenuDeliveryLayoutClient({
                  ))}
                </div>
 
-               <div className="mt-6 pt-6 border-t border-slate-100 space-y-4 pb-2">
-                 <div className="flex items-center justify-between px-2">
-                   <span className="font-bold text-slate-500">الإجمالي النهائي</span>
-                   <span className="text-2xl font-black text-slate-900">{formatCurrency(totalPrice * (1 + (Number(taxRate) / 100)), currency)}</span>
-                 </div>
+                <div className="mt-6 pt-6 border-t border-slate-100 space-y-3 pb-2">
+                  <div className="flex items-center justify-between px-2 text-sm text-right">
+                    <span className="font-bold text-slate-500">سعر الطلبات</span>
+                    <span className="font-black text-slate-900">{formatCurrency(totalPrice * (1 + (Number(taxRate) / 100)), currency)}</span>
+                  </div>
+                  <div className="flex items-center justify-between px-2 text-sm text-right">
+                    <span className="font-bold text-slate-500">سعر التوصيل</span>
+                    <span className="font-black text-amber-600">+{formatCurrency(Number(deliveryFee), currency)}</span>
+                  </div>
+                  <div className="flex items-center justify-between px-2 pt-3 border-t border-slate-50 text-right">
+                    <span className="font-black text-slate-900">الإجمالي النهائي</span>
+                    <span className="text-2xl font-black text-slate-900">{formatCurrency((totalPrice * (1 + (Number(taxRate) / 100))) + Number(deliveryFee), currency)}</span>
+                  </div>
                  <button 
                   onClick={() => setShowCheckoutModal(true)} 
                   className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-xl shadow-slate-900/20 active:scale-95 transition-transform flex items-center justify-center gap-3"

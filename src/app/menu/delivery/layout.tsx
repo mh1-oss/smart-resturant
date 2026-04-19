@@ -44,7 +44,11 @@ export default async function DeliveryLayout({
           <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossOrigin=""></script>
 
           <main className="min-h-[60vh]">
-            <MenuDeliveryLayoutClient currency={settings.currency} taxRate={settings.taxRate}>
+            <MenuDeliveryLayoutClient 
+              currency={settings.currency} 
+              taxRate={settings.taxRate}
+              deliveryFee={settings.deliveryFee}
+            >
               {children}
             </MenuDeliveryLayoutClient>
           </main>

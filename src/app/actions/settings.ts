@@ -16,6 +16,7 @@ export async function getSettings() {
     address: settingsObj.address || "بغداد، العراق",
     restaurantPhone: settingsObj.restaurantPhone || "07xxxxxxxx",
     receiptFooter: settingsObj.receiptFooter || "شكراً لزيارتكم، نأمل رؤيتكم قريباً!",
+    deliveryFee: settingsObj.deliveryFee || "0",
     ...settingsObj
   };
 }

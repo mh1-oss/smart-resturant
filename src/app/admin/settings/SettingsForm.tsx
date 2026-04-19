@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Loader2, CheckCircle2, Building2, Coins, Receipt, Phone, MapPin, Percent } from "lucide-react";
+import { Save, Loader2, CheckCircle2, Building2, Coins, Receipt, Phone, MapPin, Percent, Truck } from "lucide-react";
 import { updateSettings } from "@/app/actions/settings";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
         address: formData.get("address") as string,
         restaurantPhone: formData.get("restaurantPhone") as string,
         receiptFooter: formData.get("receiptFooter") as string,
+        deliveryFee: formData.get("deliveryFee") as string,
     };
 
     const result = await updateSettings(data);
@@ -66,6 +67,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
       fields: [
         { name: "currency", label: "العملة (مثلاً: IQD, $, EGP)", defaultValue: initialSettings.currency, icon: Coins },
         { name: "taxRate", label: "نسبة الضريبة (%)", defaultValue: initialSettings.taxRate, icon: Percent, type: "number" },
+        { name: "deliveryFee", label: "سعر التوصيل الأساسي", defaultValue: initialSettings.deliveryFee, icon: Truck, type: "number" },
       ]
     },
     {
