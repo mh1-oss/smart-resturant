@@ -37,95 +37,60 @@ export default function MenuClient({
     return items;
   })();
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0 }
-  };
-
   return (
     <div className="pb-32">
-      {/* Sticky Header Section: Unified Piece */}
-      <div className="sticky top-[80px] z-30 w-full bg-white/80 backdrop-blur-xl -mt-px">
-        <div className="mx-auto max-w-3xl px-6 py-2 space-y-4">
-          {/* Subtle Search Bar - Integrated look */}
-          <div className="relative group">
+      {/* Search & Categories Bar */}
+      <div className="sticky top-[72px] z-30 w-full bg-white/80 backdrop-blur-xl border-b border-slate-100">
+        <div className="mx-auto max-w-3xl px-6 py-4 space-y-4">
+          <div className="relative">
             <Search className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="ابحث عن وجبتك..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border-none bg-slate-100/50 px-12 py-3 text-sm font-bold shadow-none outline-none ring-1 ring-slate-200/30 placeholder:text-slate-400 focus:bg-slate-100 focus:ring-slate-900/10 transition-all"
+              className="w-full rounded-xl border-none bg-slate-100/50 px-12 py-3 text-sm font-bold outline-none ring-1 ring-slate-200/30 focus:ring-slate-900/10 transition-all text-right"
             />
           </div>
 
-          {/* Categories Navigation - Tidier and more organized */}
-          <div className="no-scrollbar flex items-center gap-3 overflow-x-auto pb-4">
-            <motion.button
-              whileTap={{ scale: 0.95 }}
+          <div className="no-scrollbar flex items-center gap-6 overflow-x-auto">
+            <button
               onClick={() => setActiveCategory(null)}
               className={cn(
-                "whitespace-nowrap px-1 py-1 text-sm font-black transition-all relative",
+                "whitespace-nowrap pb-2 text-sm font-black transition-all border-b-2",
                 activeCategory === null
-                  ? "text-slate-900"
-                  : "text-slate-400 hover:text-slate-600"
+                  ? "text-slate-900 border-slate-900"
+                  : "text-slate-400 border-transparent hover:text-slate-600"
               )}
             >
               الكل
-              {activeCategory === null && (
-                <motion.div layoutId="activeCat" className="absolute -bottom-1 inset-x-0 h-1 rounded-full bg-slate-900" />
-              )}
-            </motion.button>
+            </button>
 
             {initialCategories.map((category) => (
-              <motion.button
+              <button
                 key={category.id}
-                whileTap={{ scale: 0.95 }}
                 onClick={() => setActiveCategory(category.id)}
                 className={cn(
-                  "whitespace-nowrap px-1 py-1 text-sm font-black transition-all relative",
+                  "whitespace-nowrap pb-2 text-sm font-black transition-all border-b-2",
                   activeCategory === category.id
-                    ? "text-slate-900"
-                    : "text-slate-400 hover:text-slate-600"
+                    ? "text-slate-900 border-slate-900"
+                    : "text-slate-400 border-transparent hover:text-slate-600"
                 )}
               >
                 {category.name}
-                {activeCategory === category.id && (
-                  <motion.div layoutId="activeCat" className="absolute -bottom-1 inset-x-0 h-1 rounded-full bg-slate-900" />
-                )}
-              </motion.button>
+              </button>
             ))}
           </div>
         </div>
-        {/* Fine separator line to keep it clean */}
-        <div className="h-px w-full bg-slate-100" />
       </div>
 
-      {/* Menu Items Grid - Wrapped in max-width container */}
+      {/* Menu Items Grid */}
       <div className="mx-auto max-w-3xl px-6 mt-8">
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="grid gap-4"
-        >
+        <div className="grid gap-4">
           {filteredItems.length > 0 ? (
               filteredItems.map((item: any) => (
-                <motion.div
-                  variants={itemVariants}
+                <div
                   key={item.id}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.98 }}
                   className="group relative flex overflow-hidden rounded-[32px] border border-slate-100 bg-white p-3 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-200/40"
                 >
                   <div className="relative h-28 w-28 overflow-hidden rounded-[24px] bg-slate-100 flex-shrink-0">
@@ -161,16 +126,15 @@ export default function MenuClient({
                         </span>
                       </div>
 
-                      <motion.button
-                        whileTap={{ scale: 0.8 }}
+                      <button
                         onClick={() => addToCart(item)}
-                        className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg active:bg-black transition-colors"
+                        className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg active:scale-95 transition-all"
                       >
                         <Plus className="h-5 w-5" />
-                      </motion.button>
+                      </button>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))
           ) : (
             <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -181,7 +145,7 @@ export default function MenuClient({
               <p className="text-slate-400 font-bold mt-2">جرب البحث بشكل آخر</p>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   );

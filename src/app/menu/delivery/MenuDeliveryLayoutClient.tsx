@@ -179,17 +179,9 @@ export default function MenuDeliveryLayoutClient({
   return (
     <>
       <div className="min-h-screen bg-[#f8fafc]">
-        <AnimatePresence>
-          <motion.div
-             key={pathname}
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             exit={{ opacity: 0 }}
-             className="pb-32"
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+      <div className="min-h-screen bg-[#f8fafc] pb-32">
+        {children}
+      </div>
       </div>
 
       <div className="fixed inset-x-4 bottom-[92px] z-[100] flex items-center justify-between pointer-events-none">
