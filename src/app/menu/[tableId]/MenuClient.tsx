@@ -102,81 +102,82 @@ export default function MenuClient({
 
       {/* Menu Items Grid */}
       <div className="mx-auto max-w-3xl px-6 mt-8">
-        <div className="grid gap-4">
-          <AnimatePresence>
-            {filteredItems.length > 0 ? (
-                filteredItems.map((item: any, index: number) => (
-                  <motion.div
-                    key={item.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ 
-                      duration: 0.2, 
-                      delay: Math.min(index * 0.015, 0.08),
-                      ease: "easeOut"
-                    }}
-                    className="group relative flex overflow-hidden rounded-[32px] border border-slate-100 bg-white p-3 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-200/40 transform-gpu will-change-transform"
-                  >
-                    <div className="relative h-28 w-28 overflow-hidden rounded-[24px] bg-slate-100 flex-shrink-0">
-                      <img
-                        src={item.image_url || "/placeholder-menu.jpg"}
-                        alt={item.name}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        onError={(e: any) => {
-                          e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80";
-                        }}
-                      />
+        <AnimatePresence mode="wait">
+          {filteredItems.length > 0 ? (
+            <motion.div
+              key={activeCategory ?? 'all'}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="grid gap-4"
+            >
+              {filteredItems.map((item: any) => (
+                <div
+                  key={item.id}
+                  className="group relative flex overflow-hidden rounded-[32px] border border-slate-100 bg-white p-3 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-200/40"
+                >
+                  <div className="relative h-28 w-28 overflow-hidden rounded-[24px] bg-slate-100 flex-shrink-0">
+                    <img
+                      src={item.image_url || "/placeholder-menu.jpg"}
+                      alt={item.name}
+                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      onError={(e: any) => {
+                        e.target.src = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80";
+                      }}
+                    />
+                  </div>
+
+                  <div className="flex flex-1 flex-col justify-between py-1 pr-4 pl-2 text-right">
+                    <div>
+                      <h3 className="text-lg font-black text-slate-900 leading-tight">
+                        {item.name}
+                      </h3>
+                      <p className="mt-0.5 line-clamp-2 text-[11px] font-bold text-slate-400">
+                        {item.description}
+                      </p>
                     </div>
 
-                    <div className="flex flex-1 flex-col justify-between py-1 pr-4 pl-2 text-right">
-                      <div>
-                        <h3 className="text-lg font-black text-slate-900 leading-tight">
-                            {item.name}
-                        </h3>
-                        <p className="mt-0.5 line-clamp-2 text-[11px] font-bold text-slate-400">
-                          {item.description}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-col items-start gap-0">
-                          {item.discountPercentage && (
-                            <span className="text-[10px] font-bold text-slate-300 line-through">
-                              {formatCurrency(item.originalPrice, currency)}
-                            </span>
-                          )}
-                          <span className="text-lg font-black text-slate-900">
-                            {formatCurrency(item.price, currency)}
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col items-start gap-0">
+                        {item.discountPercentage && (
+                          <span className="text-[10px] font-bold text-slate-300 line-through">
+                            {formatCurrency(item.originalPrice, currency)}
                           </span>
-                        </div>
-
-                        <button
-                          onClick={() => addToCart(item)}
-                          className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg active:scale-95 transition-all"
-                          style={{ backgroundColor: 'var(--brand-primary)' }}
-                        >
-                          <Plus className="h-5 w-5" />
-                        </button>
+                        )}
+                        <span className="text-lg font-black text-slate-900">
+                          {formatCurrency(item.price, currency)}
+                        </span>
                       </div>
+
+                      <button
+                        onClick={() => addToCart(item)}
+                        className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg active:scale-95 transition-all"
+                        style={{ backgroundColor: 'var(--brand-primary)' }}
+                      >
+                        <Plus className="h-5 w-5" />
+                      </button>
                     </div>
-                  </motion.div>
-                ))
-            ) : (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-20 text-center"
-              >
-                <div className="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center mb-4">
-                  <ShoppingBag className="h-10 w-10 text-slate-200" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-black text-slate-900">لا توجد وجبات حالياً</h3>
-                <p className="text-slate-400 font-bold mt-2">جرب البحث بشكل آخر</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+              ))}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center py-20 text-center"
+            >
+              <div className="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center mb-4">
+                <ShoppingBag className="h-10 w-10 text-slate-200" />
+              </div>
+              <h3 className="text-xl font-black text-slate-900">لا توجد وجبات حالياً</h3>
+              <p className="text-slate-400 font-bold mt-2">جرب البحث بشكل آخر</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
