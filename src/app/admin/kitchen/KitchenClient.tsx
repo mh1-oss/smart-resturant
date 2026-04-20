@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Timer, CheckCircle2, ChefHat, UserCircle, Flame, RefreshCcw, Truck } from "lucide-react";
+import { Timer, CheckCircle2, ChefHat, UserCircle, Flame, RefreshCcw, Truck, Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { updateOrderStatus, getActiveOrders } from "@/app/actions/order";
 import { playNotificationSound } from "@/lib/audio";
 
-export default function KitchenClient({ initialOrders }: { initialOrders: any[] }) {
+export default function KitchenClient({ initialOrders, restaurantName }: { initialOrders: any[], restaurantName: string }) {
   const [orders, setOrders] = useState(initialOrders);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -33,10 +33,78 @@ export default function KitchenClient({ initialOrders }: { initialOrders: any[] 
     return () => clearInterval(interval);
   }, [orders.length]);
 
+  const handlePrint = (order: any) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const itemsHtml = order.items.map((item: any) => `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">
+        <span style="font-weight: bold; font-size: 16px;">${item.quantity}x ${item.item_name || item.menuItem?.name}</span>
+      </div>
+      ${item.notes ? `<div style="font-size: 14px; font-style: italic; background: #eee; padding: 5px; margin-bottom: 10px; border-radius: 4px;">⚠️ ${item.notes}</div>` : ''}
+    `).join('');
+
+    const customerInfo = order.type === "Delivery" 
+      ? `<div style="font-size: 16px; margin-bottom: 5px;"><strong>الزبون:</strong> ${order.customer_name || 'زبون خارجي'}</div>
+         <div style="font-size: 16px; margin-bottom: 5px;"><strong>الهاتف:</strong> ${order.customer_phone || '---'}</div>`
+      : `<div style="font-size: 24px; font-weight: 900; background: #000; color: #fff; text-align: center; padding: 10px; margin-bottom: 10px; border-radius: 8px;">طاولة: ${order.session?.table.table_number || '?'}</div>`;
+
+    const content = `
+      <html dir="rtl">
+        <head>
+          <title>Kitchen Ticket #${order.id}</title>
+          <style>
+            @font-face { font-family: 'Arial'; }
+            body { font-family: 'Arial', sans-serif; width: 80mm; margin: 0; padding: 10px; }
+            .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 10px; margin-bottom: 15px; }
+            .items { margin-top: 15px; }
+            .footer { text-align: center; margin-top: 20px; font-size: 12px; border-top: 1px solid #000; padding-top: 10px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1 style="margin: 0; font-size: 22px;">${restaurantName}</h1>
+            <div style="font-size: 16px; margin-top: 5px; font-weight: bold;">وصل المطبخ</div>
+            <div style="font-size: 14px;">طلب رقم: #${order.id}</div>
+          </div>
+          
+          <div class="order-info">
+            ${customerInfo}
+            <div style="font-size: 14px; margin-top: 5px;">الوقت: ${new Date(order.created_at).toLocaleTimeString('ar-SA')}</div>
+            <div style="font-size: 14px;">النوع: ${order.type === "Delivery" ? "توصيل 🚚" : "صالة 🍽️"}</div>
+          </div>
+
+          <div class="items">
+            ${itemsHtml}
+          </div>
+
+          <div class="footer">
+           <p style="font-size: 12px;"> طُبع من شاشة المطبخ بواسطة نظام المطعم الذكي</p>
+            07801814088
+          </div>
+          <script>
+            window.onload = () => {
+              window.print();
+              setTimeout(() => { window.close(); }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(content);
+    printWindow.document.close();
+  };
+
   const handleStatusUpdate = async (orderId: number, nextStatus: string) => {
     // Optimistic update
     const previousOrders = [...orders];
     setOrders(orders.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
+
+    if (nextStatus === "Ready") {
+      const orderToPrint = orders.find(o => o.id === orderId);
+      if (orderToPrint) handlePrint(orderToPrint);
+    }
 
     const result = await updateOrderStatus(orderId, nextStatus);
     if (!result.success) {
@@ -85,13 +153,21 @@ export default function KitchenClient({ initialOrders }: { initialOrders: any[] 
 
           {/* Header */}
           <div className="flex items-start justify-between mb-8">
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => handlePrint(order)}
+                className="h-14 w-14 rounded-2xl bg-white text-slate-900 border-2 border-slate-100 flex items-center justify-center hover:bg-slate-50 transition-all shadow-sm active:scale-95 group/print"
+                title="طباعة الوصل"
+              >
+                <Printer size={24} className="group-hover/print:scale-110 transition-transform" />
+              </button>
               <div className={cn(
                 "h-16 w-16 rounded-3xl flex items-center justify-center text-2xl font-black shadow-xl",
                 order.type === "Delivery" ? "accent-gradient text-white" : "bg-slate-900 text-white"
               )}>
                 {order.type === "Delivery" ? <Truck className="h-8 w-8" /> : order.session?.table.table_number || "?"}
               </div>
+            </div>
               <div>
                 <h3 className="text-lg font-black text-slate-900 leading-tight">
                   {order.type === "Delivery" ? (
@@ -111,7 +187,6 @@ export default function KitchenClient({ initialOrders }: { initialOrders: any[] 
                 </div>
               </div>
             </div>
-          </div>
 
           {/* Items List */}
           <div className="flex-1 space-y-5 mb-8">

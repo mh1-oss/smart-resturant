@@ -1,23 +1,27 @@
 import { prisma } from "@/lib/prisma";
 import KitchenClient from "./KitchenClient";
+import { getSettings } from "@/app/actions/settings";
 
 export default async function KitchenPage() {
-  const ordersRaw = await prisma.order.findMany({
-    where: {
-      status: {
-        in: ["Pending", "Preparing", "Ready"] as any
-      }
-    },
-    include: {
-      session: {
-        include: { table: true }
+  const [ordersRaw, settings] = await Promise.all([
+    prisma.order.findMany({
+      where: {
+        status: {
+          in: ["Pending", "Preparing", "Ready"] as any
+        }
       },
-      items: {
-        include: { menuItem: true }
-      }
-    },
-    orderBy: { created_at: "asc" }
-  });
+      include: {
+        session: {
+          include: { table: true }
+        },
+        items: {
+          include: { menuItem: true }
+        }
+      },
+      orderBy: { created_at: "asc" }
+    }),
+    getSettings()
+  ]);
 
   // Convert Decimals to Numbers for serialization
   const orders = ordersRaw.map(order => ({
@@ -43,7 +47,10 @@ export default async function KitchenPage() {
         </div>
       </div>
 
-      <KitchenClient initialOrders={orders} />
+      <KitchenClient 
+        initialOrders={orders} 
+        restaurantName={settings.restaurantName}
+      />
     </div>
   );
 }
