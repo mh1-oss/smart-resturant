@@ -53,8 +53,15 @@ export function OrderProvider({ children }: { children: ReactNode }) {
 
   const hasOrders = orders.length > 0;
 
+  const value = React.useMemo(() => ({ 
+    orders, 
+    hasOrders, 
+    isLoading, 
+    refreshOrders: fetchOrders 
+  }), [orders, hasOrders, isLoading]);
+
   return (
-    <OrderContext.Provider value={{ orders, hasOrders, isLoading, refreshOrders: fetchOrders }}>
+    <OrderContext.Provider value={value}>
       {children}
     </OrderContext.Provider>
   );

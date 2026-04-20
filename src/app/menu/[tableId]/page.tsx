@@ -12,8 +12,7 @@ export default async function MenuPage({ params }: PageProps) {
   const tableIdNum = parseInt(tableId);
   const settings = await getSettings();
   
-  // Ensure we have an active session for this table scanning
-  await ensureActiveSession(tableIdNum);
+  // Session initialization moved to background/client to avoid blocking page load
   
   // Fetch categories and items
   const categoriesRaw = await prisma.category.findMany({
@@ -59,12 +58,7 @@ export default async function MenuPage({ params }: PageProps) {
     })
   }));
 
-  // Fetch initial active orders for the table
-  let initialOrders: any[] = [];
-  const orderResult = await getCustomerOrders(tableId);
-  if (orderResult.success) {
-    initialOrders = orderResult.orders || [];
-  }
+  // Fetch initial active orders for the table - MOVED TO CLIENT CONTEXT
 
   return (
     <div>

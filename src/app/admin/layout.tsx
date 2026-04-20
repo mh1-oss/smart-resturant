@@ -57,7 +57,7 @@ export default async function AdminLayout({
           </div>
           <div>
             <h1 className="text-xl font-black text-slate-900 leading-tight">{settings.restaurantName}</h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">الإصدار الذكي 2.0</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">نظام المطاعم الذكي </p>
           </div>
         </div>
 

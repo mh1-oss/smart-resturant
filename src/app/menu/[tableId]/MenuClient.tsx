@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { Search, Plus, ShoppingBag } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -21,7 +21,15 @@ export default function MenuClient({
   const [search, setSearch] = useState("");
   const { addToCart } = useCart();
 
-  const filteredItems = (() => {
+  useEffect(() => {
+    if (tableId && tableId !== 'delivery') {
+      import('@/app/actions/order').then((mod) => {
+        mod.ensureActiveSession(parseInt(tableId)).catch(console.error);
+      });
+    }
+  }, [tableId]);
+
+  const filteredItems = useMemo(() => {
     let items: any[] = [];
     if (activeCategory === null) {
       items = initialCategories.flatMap(cat => cat.menuItems);
@@ -29,13 +37,14 @@ export default function MenuClient({
       items = initialCategories.find(cat => cat.id === activeCategory)?.menuItems || [];
     }
     if (search.trim()) {
+      const s = search.toLowerCase();
       items = items.filter(item => 
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        item.description?.toLowerCase().includes(search.toLowerCase())
+        item.name.toLowerCase().includes(s) ||
+        item.description?.toLowerCase().includes(s)
       );
     }
     return items;
-  })();
+  }, [initialCategories, activeCategory, search]);
 
   return (
     <div>
@@ -101,7 +110,7 @@ export default function MenuClient({
       </div>
 
       {/* Menu Items Grid */}
-      <div className="mx-auto max-w-3xl px-6 mt-8">
+      <div className="mx-auto max-w-3xl px-6 mt-8 min-h-[80vh]">
         <AnimatePresence mode="wait">
           {filteredItems.length > 0 ? (
             <motion.div

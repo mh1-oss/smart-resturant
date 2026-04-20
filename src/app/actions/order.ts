@@ -240,34 +240,38 @@ export async function claimTask(type: 'Serve' | 'Bill' | 'Clean', id: number, wa
 
 export async function ensureActiveSession(tableNumber: number) {
     try {
-        const table = await prisma.table.findUnique({
-            where: { table_number: tableNumber }
-        });
-
-        if (!table) return { success: false, error: "الطاولة غير موجودة" };
-
-        // Search for an existing active session
+        // Single query to find active session by table number
         let session = await (prisma as any).customerSession.findFirst({
             where: {
                 table: { table_number: tableNumber },
                 status: { in: ["Active", "BillRequested", "ReceiptReady"] }
-            }
+            },
+            include: { table: true }
         });
 
-        // If no active/pending session, and table is not explicitly blocked, create one
+        // If no active session, we need to find the table first to create one
         if (!session) {
+            const table = await prisma.table.findUnique({
+                where: { table_number: tableNumber }
+            });
+
+            if (!table) return { success: false, error: "الطاولة غير موجودة" };
+
             session = await (prisma as any).customerSession.create({
                 data: {
                     table_id: table.id,
                     status: "Active"
-                }
+                },
+                include: { table: true }
             });
             
-            // Also update table status
-            await prisma.table.update({
-                where: { id: table.id },
-                data: { status: "Occupied" }
-            });
+            // Update table status if it's not already occupied
+            if (table.status !== "Occupied") {
+                await prisma.table.update({
+                    where: { id: table.id },
+                    data: { status: "Occupied" }
+                });
+            }
         }
 
         return { success: true, session };

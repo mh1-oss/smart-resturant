@@ -234,11 +234,11 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
                   <span className="font-black text-lg">تم تطبيق التغييرات بنجاح</span>
                 </div>
               ) : (
-                <div className="flex items-center gap-3 text-white/50">
-                  <div className="h-10 w-10 rounded-full bg-white/5 flex items-center justify-center">
+                <div className="flex items-center gap-3 text-white/90">
+                  <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center">
                     <Save size={20} />
                   </div>
-                  <span className="font-bold">تأكد من مراجعة كافة الحقول قبل الحفظ</span>
+                  <span className="font-medium antialiased">تأكد من مراجعة كافة الحقول قبل الحفظ</span>
                 </div>
               )}
             </div>
