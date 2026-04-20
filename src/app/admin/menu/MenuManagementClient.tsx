@@ -100,7 +100,7 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
           className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 px-2"
         >
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/5 backdrop-blur-md border border-slate-900/10 mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full backdrop-blur-md mb-2" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 5%, transparent)', borderColor: 'color-mix(in srgb, var(--brand-primary) 10%, transparent)' }}>
                 <Sparkles size={14} className="text-amber-500" />
                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">منصة إدارة الذكاء</span>
             </div>
@@ -134,7 +134,8 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                whileHover={{ scale: 1.05 }}
                whileTap={{ scale: 0.95 }}
                onClick={() => setIsCatDrawerOpen(true)}
-               className="bg-slate-900 text-white p-6 rounded-3xl group shadow-2xl shadow-slate-900/20 flex flex-col items-center justify-center gap-1 transition-all"
+               className="text-white p-6 rounded-3xl group shadow-2xl shadow-slate-900/20 flex flex-col items-center justify-center gap-1 transition-all"
+               style={{ backgroundColor: 'var(--brand-primary)' }}
              >
                <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
                <span className="text-[10px] font-black uppercase">قسم جديد</span>
@@ -152,9 +153,10 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                             className={cn(
                                 "relative h-18 px-8 rounded-3xl text-sm font-black transition-all duration-500 flex items-center gap-4 overflow-hidden",
                                 activeTab === cat.id
-                                    ? "bg-slate-900 text-white shadow-2xl shadow-slate-900/30 ring-4 ring-slate-900/5"
+                                    ? "text-white shadow-2xl ring-4 ring-slate-900/5"
                                     : "bg-white/40 text-slate-500 hover:bg-white border border-slate-200/50"
                             )}
+                            style={activeTab === cat.id ? { backgroundColor: 'var(--brand-primary)' } : {}}
                         >
                             <div className={cn(
                                 "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-500",
@@ -175,7 +177,8 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                         <div className="absolute -top-2 -right-2 flex gap-1 opacity-0 group-hover/cat:opacity-100 transition-all duration-300 scale-75 group-hover/cat:scale-100 z-10">
                             <button 
                                 onClick={(e) => { e.stopPropagation(); setEditingCatId(cat.id); setEditingCatName(cat.name); }}
-                                className="h-8 w-8 flex items-center justify-center rounded-xl text-white bg-slate-900 border-2 border-white shadow-lg"
+                                className="h-8 w-8 flex items-center justify-center rounded-xl text-white border-2 border-white shadow-lg"
+                                style={{ backgroundColor: 'var(--brand-primary)' }}
                             >
                                 <Edit3 size={12} />
                             </button>
@@ -195,7 +198,7 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center px-2">
             <div className="md:col-span-8 relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-slate-200 to-slate-100 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition-opacity" />
-                <div className="relative bg-white/80 backdrop-blur-md rounded-[2.2rem] h-20 border border-white flex items-center px-8 gap-4 shadow-xl shadow-slate-900/5">
+                <div className="relative bg-white/80 backdrop-blur-md rounded-[2.2rem] h-20 border border-white flex items-center px-8 gap-4 shadow-xl" style={{ boxShadow: '0 20px 25px -5px color-mix(in srgb, var(--brand-primary), transparent 95%)' }}>
                     <Search className="h-6 w-6 text-slate-300" />
                     <input
                         type="text"
@@ -240,13 +243,13 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                              <span className="text-lg font-black text-slate-900 leading-none">{formatCurrency(item.price, currency)}</span>
                         </div>
 
-                        <div className="relative overflow-hidden bg-white rounded-[3rem] border border-white shadow-2xl shadow-slate-900/5 group-hover:shadow-slate-900/10 transition-all duration-700 h-full flex flex-col">
+                        <div className="relative overflow-hidden bg-white rounded-[3rem] border border-white shadow-2xl transition-all duration-700 h-full flex flex-col" style={{ boxShadow: '0 20px 25px -5px color-mix(in srgb, var(--brand-primary), transparent 95%)' }}>
                             {/* Visual Header (Image) */}
                             <div className="relative h-64 overflow-hidden rounded-[2.8rem] m-2">
                                 {item.image_url ? (
                                     <img src={item.image_url} alt={item.name} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                                 ) : (
-                                    <div className="h-full w-full bg-slate-50 flex flex-col items-center justify-center text-slate-200">
+                                    <div className="h-full w-full flex flex-col items-center justify-center text-white" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 20%)' }}>
                                         <ImageIcon size={48} strokeWidth={1} />
                                         <span className="text-[10px] font-black mt-2">لا توجد صورة</span>
                                     </div>
@@ -285,7 +288,8 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                                     <div className="flex items-center gap-3">
                                         <button 
                                             onClick={() => { setEditingItem(item); setIsItemDrawerOpen(true); }}
-                                            className="flex-1 h-14 bg-slate-900 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-xl shadow-slate-900/10 hover:bg-black transition-all"
+                                            className="flex-1 h-14 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-xl transition-all"
+                                            style={{ backgroundColor: 'var(--brand-primary)' }}
                                         >
                                             <Edit3 size={16} />
                                             <span>تحديث الوجبة</span>
@@ -312,7 +316,7 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                         className="max-w-md mx-auto"
                     >
                         <div className="h-32 w-32 bg-white rounded-[3rem] shadow-2xl flex items-center justify-center mx-auto mb-10 relative">
-                             <div className="absolute inset-0 bg-indigo-500/10 blur-2xl animate-pulse" />
+                             <div className="absolute inset-0 blur-2xl animate-pulse" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 90%)' }} />
                              <Package size={50} strokeWidth={1} className="text-slate-200 relative z-10" />
                         </div>
                         <h3 className="text-2xl font-black text-slate-900 mb-4">هذا القسم ينتظر إبداعك</h3>
@@ -326,16 +330,19 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
         <AnimatePresence>
             {(isCatDrawerOpen || isItemDrawerOpen) && (
                 <motion.div
+                    key="drawer-backdrop"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={() => { setIsCatDrawerOpen(false); setIsItemDrawerOpen(false); }}
-                    className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-2xl"
+                    className="fixed inset-0 z-[100] backdrop-blur-2xl"
+                    style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 80%, transparent)' }}
                 />
             )}
 
             {isItemDrawerOpen && (
                 <motion.div
+                    key="item-drawer"
                     initial={{ x: "100%" }}
                     animate={{ x: 0 }}
                     exit={{ x: "100%" }}
@@ -345,7 +352,7 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                     {/* Drawer Header */}
                     <div className="p-10 pb-8 flex items-center justify-between border-b border-slate-50 shrink-0">
                         <div className="flex items-center gap-6">
-                            <div className="h-20 w-20 bg-emerald-50 text-emerald-600 rounded-[2.5rem] flex items-center justify-center shadow-xl shadow-emerald-600/5 border border-emerald-100/50">
+                            <div className="h-20 w-20 rounded-[2.5rem] flex items-center justify-center shadow-xl border border-emerald-100/50" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 90%)', color: 'var(--brand-primary)' }}>
                                 {editingItem ? <Edit3 size={32} /> : <PlusCircle size={32} />}
                             </div>
                             <div>
@@ -364,12 +371,12 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                         <div className="space-y-10">
                             <div className="space-y-3">
                                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">اسم الوجبة الرنان</label>
-                                <input name="name" defaultValue={editingItem?.name} placeholder="مثل: باستا تروفل الملكية..." className="w-full bg-white border border-slate-100 rounded-[2rem] px-8 py-6 text-xl font-black text-slate-900 focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 transition-all outline-none" required />
+                                <input name="name" defaultValue={editingItem?.name} placeholder="مثل: باستا تروفل الملكية..." className="w-full bg-white border border-slate-100 rounded-[2rem] px-8 py-6 text-xl font-black text-slate-900 transition-all outline-none" style={{ '--tw-ring-color': 'color-mix(in srgb, var(--brand-primary) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--brand-primary) 20%, transparent)' } as any} required />
                             </div>
                             
                             <div className="space-y-3">
                                 <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">قصة الوجبة (الوصف)</label>
-                                <textarea name="description" defaultValue={editingItem?.description} placeholder="صف نكهة الطبق، مكوناته السرية، أو طريق الطهي..." className="w-full bg-white border border-slate-100 rounded-[2.5rem] px-8 py-8 text-lg font-bold text-slate-600 focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 transition-all outline-none h-48 resize-none leading-relaxed" />
+                                <textarea name="description" defaultValue={editingItem?.description} placeholder="صف نكهة الطبق، مكوناته السرية، أو طريق الطهي..." className="w-full bg-white border border-slate-100 rounded-[2.5rem] px-8 py-8 text-lg font-bold text-slate-600 transition-all outline-none h-48 resize-none leading-relaxed" style={{ '--tw-ring-color': 'color-mix(in srgb, var(--brand-primary) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--brand-primary) 20%, transparent)' } as any} />
                             </div>
 
                             <div className="grid grid-cols-2 gap-8">
@@ -401,14 +408,14 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                         </div>
 
                         <div className="pt-8">
-                            <button type="submit" disabled={loading} className="group w-full relative h-24 overflow-hidden rounded-[2.5rem] bg-slate-900 text-white shadow-2xl transition-all hover:bg-black active:scale-95">
+                            <button type="submit" disabled={loading} className="group w-full relative h-24 overflow-hidden rounded-[2.5rem] text-white shadow-2xl transition-all active:scale-95" style={{ backgroundColor: 'var(--brand-primary)' }}>
                                 <div className="relative z-10 flex items-center justify-center gap-6 text-xl font-black">
                                     {loading ? <Loader2 className="animate-spin" /> : (editingItem ? "حفظ التغييرات العصرية" : "إطلاق الوجبة للقائمة")}
                                     <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-white/20 transition-colors">
                                         <ArrowRight size={20} className="rotate-180" />
                                     </div>
                                 </div>
-                                <div className="absolute inset-x-0 bottom-0 h-1.5 bg-gradient-to-r from-amber-500 via-rose-500 to-emerald-500" />
+                                <div className="absolute inset-x-0 bottom-0 h-1.5 bg-white/20" />
                             </button>
                         </div>
                     </form>
@@ -419,8 +426,8 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
             {/* ... simplified for execution speed ... */}
             <AnimatePresence>
                 {(confirmDeleteCatId || confirmDeleteItemId) && (
-                    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
-                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setConfirmDeleteCatId(null); setConfirmDeleteItemId(null); }} className="fixed inset-0 bg-slate-900/90 backdrop-blur-3xl" />
+                    <div key="delete-confirmation-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setConfirmDeleteCatId(null); setConfirmDeleteItemId(null); }} className="fixed inset-0 backdrop-blur-3xl" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 90%, transparent)' }} />
                        <motion.div 
                          initial={{ scale: 0.8, opacity: 0 }} 
                          animate={{ scale: 1, opacity: 1 }} 
@@ -448,8 +455,8 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                 )}
                 
                 {editingCatId && (
-                    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingCatId(null)} className="fixed inset-0 bg-slate-900/80 backdrop-blur-2xl" />
+                    <div key="edit-category-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingCatId(null)} className="absolute inset-0" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 40%)' }} />
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative z-10 w-full max-w-sm bg-white rounded-[3.5rem] p-12 shadow-3xl border border-white">
                             <h3 className="text-2xl font-black text-slate-900 mb-10 text-center">تغيير اسم القسم</h3>
                             <form onSubmit={async (e) => { e.preventDefault(); await updateCategory(editingCatId, editingCatName); window.location.reload(); }} className="space-y-6">
@@ -459,7 +466,7 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                                     className="w-full bg-slate-50 border border-slate-100 rounded-[1.8rem] h-20 px-8 font-black text-xl text-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all outline-none text-center"
                                     autoFocus
                                 />
-                                <button type="submit" className="w-full bg-slate-900 text-white h-20 rounded-[1.8rem] font-black text-lg shadow-2xl active:scale-95 transition-transform">
+                                <button type="submit" className="w-full text-white h-20 rounded-[1.8rem] font-black text-lg shadow-2xl active:scale-95 transition-transform" style={{ backgroundColor: 'var(--brand-primary)' }}>
                                   اعتماد التعديل
                                 </button>
                             </form>
@@ -468,10 +475,10 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                 )}
                 
                 {isCatDrawerOpen && (
-                    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCatDrawerOpen(false)} className="fixed inset-0 bg-slate-900/80 backdrop-blur-2xl" />
+                    <div key="add-category-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCatDrawerOpen(false)} className="fixed inset-0 backdrop-blur-2xl" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 20%)' }} />
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative z-10 w-full max-w-sm bg-white rounded-[3.5rem] p-12 shadow-3xl border border-white">
-                            <div className="h-20 w-20 bg-slate-900 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-slate-900/20">
+                            <div className="h-20 w-20 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-slate-900/20" style={{ backgroundColor: 'var(--brand-primary)' }}>
                                 <Shapes size={32} />
                             </div>
                             <h3 className="text-2xl font-black text-slate-900 mb-2 text-center">إضافة قسم جديد</h3>
@@ -484,7 +491,7 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                                     autoFocus
                                     required
                                 />
-                                <button type="submit" className="w-full bg-slate-900 text-white h-20 rounded-[1.8rem] font-black text-lg shadow-2xl active:scale-95 transition-transform">
+                                <button type="submit" className="w-full text-white h-20 rounded-[1.8rem] font-black text-lg shadow-2xl active:scale-95 transition-transform" style={{ backgroundColor: 'var(--brand-primary)' }}>
                                   خلق القسم الآن
                                 </button>
                             </form>

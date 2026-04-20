@@ -108,9 +108,10 @@ export default function DashboardClient({
               className={cn(
                 "flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black transition-all shrink-0",
                 activePeriod === p.id 
-                  ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20" 
+                  ? "text-white shadow-lg shadow-slate-900/20" 
                   : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
               )}
+              style={activePeriod === p.id ? { backgroundColor: 'var(--brand-primary)' } : {}}
             >
               <p.icon size={14} />
               {p.label}
@@ -122,7 +123,7 @@ export default function DashboardClient({
       {/* Hero Financial Cards */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {/* Revenue Card */}
-        <motion.div variants={itemVariants} className="group relative overflow-hidden rounded-[2.5rem] p-8 bg-slate-900 text-white shadow-2xl shadow-slate-900/20">
+        <motion.div variants={itemVariants} className="group relative overflow-hidden rounded-[2.5rem] p-8 text-white shadow-2xl shadow-slate-900/20" style={{ backgroundColor: 'var(--brand-primary)' }}>
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500/20 to-transparent rounded-full -mr-16 -mt-16 blur-3xl group-hover:bg-emerald-500/30 transition-all duration-500" />
           <div className="relative z-10">
             <div className="flex items-center justify-between mb-6">
@@ -134,7 +135,7 @@ export default function DashboardClient({
                   <span>{currentStats.orderCount} طلب</span>
                </div>
             </div>
-            <p className="text-sm font-bold text-slate-400 mb-1">إجمالي المبيعات</p>
+            <p className="text-sm font-bold text-white/70 mb-1">إجمالي المبيعات</p>
             <h3 className="text-4xl font-black tracking-tight">{formatCurrency(currentStats.revenue, currency)}</h3>
           </div>
         </motion.div>
@@ -192,7 +193,7 @@ export default function DashboardClient({
         <motion.div variants={itemVariants} className="lg:col-span-2 premium-card !rounded-[2.5rem] p-8 border-slate-100">
           <div className="flex items-center justify-between mb-12">
             <div className="flex items-center gap-4">
-              <div className="h-12 w-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-900/20">
+              <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-xl" style={{ backgroundColor: 'var(--brand-primary)' }}>
                 <BarChart3 size={20} />
               </div>
               <div>
@@ -219,10 +220,10 @@ export default function DashboardClient({
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-4 group relative h-full justify-end z-10">
                   <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-all scale-75 group-hover:scale-100 pointer-events-none">
-                    <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-[10px] font-black shadow-xl">
+                    <div className="text-white px-3 py-1.5 rounded-xl text-[10px] font-black shadow-xl" style={{ backgroundColor: 'var(--brand-primary)' }}>
                        {formatCurrency(day.revenue, currency)}
                     </div>
-                    <div className="w-2 h-2 bg-slate-900 rotate-45 mx-auto -mt-1" />
+                    <div className="w-2 h-2 rotate-45 mx-auto -mt-1" style={{ backgroundColor: 'var(--brand-primary)' }} />
                   </div>
                   
                   <motion.div 
@@ -232,9 +233,10 @@ export default function DashboardClient({
                     className={cn(
                         "w-full max-w-[40px] rounded-2xl transition-all duration-300 relative group-hover:shadow-2xl",
                         day.revenue === maxRevenue 
-                          ? "bg-slate-900 shadow-xl shadow-slate-900/20" 
+                          ? "shadow-xl shadow-slate-900/20" 
                           : "bg-gradient-to-t from-slate-200 to-slate-100 group-hover:from-emerald-600 group-hover:to-emerald-400 shadow-sm"
                     )}
+                    style={day.revenue === maxRevenue ? { backgroundColor: 'var(--brand-primary)' } : {}}
                   >
                     {day.revenue > 0 && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-white/40 rounded-full" />}
                   </motion.div>
@@ -282,7 +284,7 @@ export default function DashboardClient({
              <button 
                type="submit"
                disabled={isAdding}
-               className="w-full group h-14 bg-slate-900 text-white rounded-[1.25rem] font-bold text-sm shadow-xl shadow-slate-900/10 hover:shadow-slate-900/40 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+               className="w-full group h-14 text-white rounded-[1.25rem] font-bold text-sm shadow-xl hover:-translate-y-0.5 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50" style={{ backgroundColor: 'var(--brand-primary)' }}
              >
                <div className="w-6 h-6 bg-white/10 rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
                  <Plus size={16} />

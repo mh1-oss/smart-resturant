@@ -95,7 +95,8 @@ export default function OffersView({ offers, currency }: { offers: any[], curren
                           <motion.button 
                              whileTap={{ scale: 0.8 }}
                              onClick={() => handleAddItem(item, offer.discount_percentage)}
-                             className="h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center hover:bg-black transition-colors shadow-lg shadow-slate-900/10"
+                             className="h-10 w-10 rounded-2xl text-white flex items-center justify-center transition-colors shadow-lg"
+                             style={{ backgroundColor: 'var(--brand-primary)' }}
                           >
                              <Plus size={18} />
                           </motion.button>
@@ -105,10 +106,10 @@ export default function OffersView({ offers, currency }: { offers: any[], curren
                 </div>
               </div>
 
-              <div className="pt-2 text-right">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 rounded-full">
-                      <Star size={14} className="text-amber-500" fill="currentColor" />
-                      <span className="text-[10px] font-black text-amber-600 uppercase tracking-wide">متوفر لفترة محدودة</span>
+               <div className="pt-2 text-right">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-accent) 10%, transparent)' }}>
+                      <Star size={12} style={{ color: 'var(--brand-accent)' }} fill="currentColor" />
+                      <span className="text-[10px] font-black uppercase tracking-wide" style={{ color: 'var(--brand-accent)' }}>متوفر لفترة محدودة</span>
                   </div>
               </div>
             </div>

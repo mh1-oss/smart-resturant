@@ -86,7 +86,7 @@ export default function TablesManagementClient({ initialTables }: { initialTable
     <div className="space-y-12 pb-32" dir="rtl">
       {/* 1. Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        <div className="premium-card bg-slate-900 border-none p-8 text-white overflow-hidden relative group">
+        <div className="premium-card border-none p-8 text-white overflow-hidden relative group" style={{ backgroundColor: 'var(--brand-primary)' }}>
           <div className="relative z-10">
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-1">إحصائيات الصالة</p>
             <h4 className="text-4xl font-black">{tables.length}</h4>
@@ -124,14 +124,15 @@ export default function TablesManagementClient({ initialTables }: { initialTable
         <div className="lg:col-span-8 flex flex-col gap-6 text-right">
           <div className="flex items-center justify-end gap-4">
             <h3 className="text-xl font-black text-slate-900">إضافة طاولة جديدة</h3>
-            <div className="h-2 w-10 rounded-full bg-slate-900"></div>
+            <div className="h-2 w-10 rounded-full" style={{ backgroundColor: 'var(--brand-primary)' }}></div>
           </div>
           
           <form onSubmit={handleAddTable} className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-[2.5rem] border border-slate-100 shadow-sm">
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto h-16 px-10 rounded-3xl bg-slate-900 text-white font-black hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20 disabled:opacity-50 active:scale-95 order-2 sm:order-1"
+              className="w-full sm:w-auto h-16 px-10 rounded-3xl text-white font-black hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-900/20 disabled:opacity-50 active:scale-95 order-2 sm:order-1"
+              style={{ backgroundColor: 'var(--brand-primary)' }}
             >
               {loading ? <Loader2 className="animate-spin h-5 w-5" /> : <Plus className="h-5 w-5" />}
               <span>إضافة للطاقة الاستيعابية</span>
@@ -142,7 +143,7 @@ export default function TablesManagementClient({ initialTables }: { initialTable
                 type="number"
                 value={newTableNum}
                 onChange={(e) => setNewTableNum(e.target.value)}
-                className="w-full h-16 pr-14 pl-6 rounded-3xl bg-slate-50 border-none font-black text-slate-700 outline-none ring-2 ring-transparent focus:ring-slate-900 transition-all text-right text-lg"
+                className="w-full h-16 pr-14 pl-6 rounded-3xl bg-slate-50 border-none font-black text-slate-700 outline-none ring-2 ring-transparent transition-all text-right text-lg focus:ring-[var(--brand-primary)]"
                 placeholder="أدخل رقم الطاولة..."
                 min="1"
                 required
@@ -162,9 +163,9 @@ export default function TablesManagementClient({ initialTables }: { initialTable
             <div className="flex items-center justify-end gap-4 mb-4">
               <div>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">منيو الطلبات الخارجية</p>
-                <h4 className="text-sm font-black text-slate-900 text-right">رابط التوصيل</h4>
+                <h4 className="text-sm font-black text-right" style={{ color: 'var(--brand-primary)' }}>رابط التوصيل</h4>
               </div>
-              <div className="h-12 w-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center transition-transform group-hover:scale-110 duration-500 shadow-sm shadow-orange-500/10">
+              <div className="h-12 w-12 rounded-2xl text-white flex items-center justify-center font-black text-lg transition-transform group-hover:scale-110 duration-500 shadow-sm shadow-orange-500/10" style={{ backgroundColor: 'var(--brand-primary)' }}>
                 <Truck size={24} />
               </div>
             </div>
@@ -186,7 +187,7 @@ export default function TablesManagementClient({ initialTables }: { initialTable
       <div className="space-y-8">
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-4">
-            <h3 className="text-2xl font-black text-slate-900">توزيع الصالة</h3>
+            <h3 className="text-2xl font-black" style={{ color: 'var(--brand-primary)' }}>توزيع الصالة</h3>
             <div className="h-2 w-10 rounded-full bg-emerald-500"></div>
           </div>
           <div className="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-50 px-4 py-2 rounded-full ring-1 ring-emerald-100">
@@ -205,10 +206,12 @@ export default function TablesManagementClient({ initialTables }: { initialTable
               className="premium-card group relative border-slate-100 p-8 transition-all hover:shadow-2xl hover:shadow-slate-200/60 active:scale-[0.98] overflow-hidden bg-white"
             >
               {/* Top accent line */}
-              <div className="absolute top-0 inset-x-0 h-1.5 bg-slate-900 origin-right scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+              <div className="absolute top-0 inset-x-0 h-1.5 origin-right scale-x-0 group-hover:scale-x-100 transition-transform duration-500" style={{ backgroundColor: 'var(--brand-primary)' }} />
               
               <div className="mb-10 flex items-start justify-between relative z-10">
-                <div className="flex h-20 w-20 items-center justify-center rounded-[2.5rem] bg-slate-50 text-slate-900 ring-4 ring-white shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 group-hover:bg-slate-900 group-hover:text-white">
+                <div className="flex h-20 w-20 items-center justify-center rounded-[2.5rem] bg-slate-50 text-slate-900 ring-4 ring-white shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 group-hover:text-white"
+                     style={{"--tw-group-hover-bg": "var(--brand-primary)"} as any}
+                >
                   <span className="text-4xl font-black">{table.table_number}</span>
                 </div>
                 
@@ -224,7 +227,7 @@ export default function TablesManagementClient({ initialTables }: { initialTable
               </div>
 
               <div className="relative z-10 text-right">
-                  <h3 className="text-lg font-black text-slate-900 mb-1">طاولة رقم {table.table_number}</h3>
+                  <h3 className="text-lg font-black mb-1" style={{ color: 'var(--brand-primary)' }}>طاولة رقم {table.table_number}</h3>
                   <p className="text-xs font-bold text-slate-400 flex items-center justify-end gap-1.5">
                       جاهز للمسح والطلب المعاصر
                       <QrCode size={14} className="text-slate-300" />
@@ -234,7 +237,7 @@ export default function TablesManagementClient({ initialTables }: { initialTable
               <div className="mt-10 grid grid-cols-2 gap-4 relative z-10">
                 <button 
                   onClick={() => setQrTable(table)}
-                  className="flex h-14 items-center justify-center gap-3 rounded-2xl bg-white border-2 border-slate-100 text-slate-900 text-sm font-black transition-all hover:border-slate-900 active:scale-95 group/qr"
+                  className="flex h-14 items-center justify-center gap-3 rounded-2xl bg-white border-2 border-slate-100 text-slate-900 text-sm font-black transition-all active:scale-95 group/qr hover:border-[var(--brand-primary)]"
                 >
                   <QrCode size={18} className="transition-transform group-hover/qr:scale-110" />
                   QR كود
@@ -262,7 +265,8 @@ export default function TablesManagementClient({ initialTables }: { initialTable
                 animate={{ opacity: 1 }} 
                 exit={{ opacity: 0 }} 
                 onClick={() => setQrTable(null)} 
-                className="fixed inset-0 bg-slate-900/90 backdrop-blur-xl" 
+                className="fixed inset-0 backdrop-blur-md" 
+                style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 10%)' }}
             />
             
             <motion.div 
@@ -282,10 +286,10 @@ export default function TablesManagementClient({ initialTables }: { initialTable
                 </button>
                 
                 <div className="text-center mb-10 w-full">
-                    <div className="h-16 w-16 bg-slate-900 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-slate-900/40">
+                    <div className="h-16 w-16 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl" style={{ backgroundColor: 'var(--brand-primary)' }}>
                         <QrCode size={32} />
                     </div>
-                    <h2 className="text-4xl font-black text-slate-900 leading-none">طاولة {qrTable.table_number}</h2>
+                    <h2 className="text-4xl font-black leading-none" style={{ color: 'var(--brand-primary)' }}>طاولة {qrTable.table_number}</h2>
                     <p className="text-xs font-bold text-slate-400 mt-4 tracking-wider uppercase">امسح الرمز لتصفح المنيو</p>
                 </div>
 
@@ -301,7 +305,8 @@ export default function TablesManagementClient({ initialTables }: { initialTable
                 <div className="w-full space-y-4">
                     <button 
                     onClick={() => window.print()}
-                    className="w-full h-18 bg-slate-900 text-white rounded-3xl font-black text-lg shadow-2xl shadow-slate-900/30 flex items-center justify-center gap-4 hover:bg-slate-800 transition-all active:scale-95"
+                    className="w-full h-18 text-white rounded-3xl font-black text-lg shadow-2xl flex items-center justify-center gap-4 hover:opacity-90 transition-all active:scale-95"
+                    style={{ backgroundColor: 'var(--brand-primary)' }}
                     >
                         <Printer className="h-6 w-6" />
                         طباعة الكرت
@@ -322,12 +327,12 @@ export default function TablesManagementClient({ initialTables }: { initialTable
         {/* Delete Confirmation Modal */}
         {confirmDeleteTableId && (
             <div className="fixed inset-0 z-[500] flex items-center justify-center p-6">
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setConfirmDeleteTableId(null)} className="fixed inset-0 bg-slate-900/80 backdrop-blur-md" />
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setConfirmDeleteTableId(null)} className="fixed inset-0 backdrop-blur-md" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 20%)' }} />
                 <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="w-full max-w-sm bg-white rounded-[3rem] p-10 text-center relative z-10 border border-slate-100 shadow-2xl">
                     <div className="mx-auto w-20 h-20 bg-rose-50 text-rose-500 rounded-3xl flex items-center justify-center mb-6 shadow-sm">
                         <AlertCircle className="w-10 h-10" />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 mb-2">تأكيد الحذف</h2>
+                    <h2 className="text-2xl font-black mb-2" style={{ color: 'var(--brand-primary)' }}>تأكيد الحذف</h2>
                     <p className="text-slate-400 font-bold mb-10 leading-relaxed text-sm">سيتم إزالة الطاولة وكود الـ QR بشكل نهائي. هل ترغب بالمتابعة؟</p>
                     <div className="grid grid-cols-2 gap-4">
                         <button onClick={() => setConfirmDeleteTableId(null)} className="h-16 rounded-2xl font-black text-slate-500 bg-slate-50 hover:bg-slate-100 transition-all active:scale-95 leading-none">
@@ -348,7 +353,7 @@ export default function TablesManagementClient({ initialTables }: { initialTable
           <div className="flex flex-col items-center justify-center text-center p-16 border-[16px] border-slate-900 rounded-[80px] w-[600px] aspect-[1/1.5] bg-white relative">
             {/* Header branding */}
             <div className="mb-12 flex flex-col items-center">
-                <div className="h-28 w-28 bg-slate-900 text-white rounded-[36px] flex items-center justify-center text-5xl font-black mb-6 shadow-2xl">
+                <div className="h-28 w-28 text-white rounded-[36px] flex items-center justify-center text-5xl font-black mb-6 shadow-2xl" style={{ backgroundColor: 'var(--brand-primary)' }}>
                     S
                 </div>
                 <h1 className="text-5xl font-black text-slate-900 tracking-tight">SMART MENU</h1>
@@ -368,12 +373,12 @@ export default function TablesManagementClient({ initialTables }: { initialTable
                 includeMargin={false}
               />
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-3xl shadow-xl">
-                 <div className="h-12 w-12 bg-slate-900 rounded-2xl" />
+                 <div className="h-12 w-12 rounded-2xl" style={{ backgroundColor: 'var(--brand-primary)' }} />
               </div>
             </div>
             
             <div className="mt-auto w-full">
-              <div className="flex items-center justify-between gap-6 px-10 py-8 rounded-[3rem] bg-slate-900 text-white shadow-2xl">
+              <div className="flex items-center justify-between gap-6 px-10 py-8 rounded-[3rem] text-white shadow-2xl" style={{ backgroundColor: 'var(--brand-primary)' }}>
                 <div className="text-right">
                     <p className="text-sm font-black opacity-50 uppercase tracking-widest mb-1">رقم الطاولة</p>
                     <p className="text-6xl font-black leading-none">{qrTable.table_number}</p>

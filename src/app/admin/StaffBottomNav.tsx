@@ -46,7 +46,8 @@ export default function StaffBottomNav({ role }: { role: string }) {
               {isActive && (
                 <motion.div
                   layoutId="bottom-nav-indicator"
-                  className="absolute inset-0 bg-slate-900 rounded-2xl -z-10 shadow-lg shadow-slate-900/10"
+                  className="absolute inset-0 rounded-2xl -z-10 shadow-lg shadow-slate-900/10"
+                  style={{ backgroundColor: 'var(--brand-primary)' }}
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}

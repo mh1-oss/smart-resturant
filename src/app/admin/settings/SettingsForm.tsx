@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Loader2, CheckCircle2, Building2, Coins, Receipt, Phone, MapPin, Percent, Truck } from "lucide-react";
+import { Save, Loader2, CheckCircle2, Building2, Coins, Receipt, Phone, MapPin, Percent, Truck, Palette, Image as ImageIcon, Zap } from "lucide-react";
 import { updateSettings } from "@/app/actions/settings";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,19 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Theme states for presets
+  const [themePrimary, setThemePrimary] = useState(initialSettings.themePrimary || "#0f172a");
+  const [themeAccent, setThemeAccent] = useState(initialSettings.themeAccent || "#f59e0b");
+  const [themeBgColor, setThemeBgColor] = useState(initialSettings.themeBgColor || "#f8fafc");
+  const [themeBgImage, setThemeBgImage] = useState(initialSettings.themeBgImage || "");
+
+  const applyPreset = (primary: string, accent: string, bg: string) => {
+    setThemePrimary(primary);
+    setThemeAccent(accent);
+    setThemeBgColor(bg);
+    setThemeBgImage("");
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,6 +39,10 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
         restaurantPhone: formData.get("restaurantPhone") as string,
         receiptFooter: formData.get("receiptFooter") as string,
         deliveryFee: formData.get("deliveryFee") as string,
+        themePrimary: formData.get("themePrimary") as string,
+        themeAccent: formData.get("themeAccent") as string,
+        themeBgColor: formData.get("themeBgColor") as string,
+        themeBgImage: formData.get("themeBgImage") as string,
     };
 
     const result = await updateSettings(data);
@@ -48,6 +65,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
       icon: any; 
       type?: string; 
       isTextArea?: boolean; 
+      isColor?: boolean;
     }[];
   }[] = [
     {
@@ -77,7 +95,26 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
       fields: [
         { name: "receiptFooter", label: "نص تذييل الوصل (Footer)", defaultValue: initialSettings.receiptFooter, icon: Receipt, isTextArea: true },
       ]
+    },
+    {
+      title: "هوية العلامة التجارية",
+      description: "تخصيص ألوان التطبيق وصورة الخلفية",
+      icon: Palette,
+      fields: [
+        { name: "themePrimary", label: "اللون الأساسي", defaultValue: themePrimary, icon: Palette, isColor: true },
+        { name: "themeAccent", label: "لون التميز (Accent)", defaultValue: themeAccent, icon: Zap, isColor: true },
+        { name: "themeBgColor", label: "لون الخلفية", defaultValue: themeBgColor, icon: Palette, isColor: true },
+        { name: "themeBgImage", label: "رابط صورة الخلفية (URL)", defaultValue: themeBgImage, icon: ImageIcon },
+      ]
     }
+  ];
+
+  const presets = [
+    { name: "برتقالي", primary: "#f59e0b", accent: "#fbbf24", bg: "#fff7ed", color: "bg-amber-500" },
+    { name: "أحمر", primary: "#ef4444", accent: "#f87171", bg: "#fef2f2", color: "bg-rose-500" },
+    { name: "أزرق", primary: "#3b82f6", accent: "#60a5fa", bg: "#eff6ff", color: "bg-blue-500" },
+    { name: "أخضر", primary: "#10b981", accent: "#34d399", bg: "#f0fdf4", color: "bg-emerald-500" },
+    { name: "أسود", primary: "#0f172a", accent: "#f59e0b", bg: "#f8fafc", color: "bg-slate-900" },
   ];
 
   return (
@@ -92,7 +129,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
             className="premium-card p-0 overflow-hidden border-slate-100"
           >
             <div className="p-8 border-b border-slate-50 bg-slate-50/30 flex items-center gap-6">
-               <div className="h-14 w-14 rounded-2xl bg-white shadow-sm flex items-center justify-center text-slate-900 border border-slate-100">
+               <div className="h-14 w-14 rounded-2xl text-white shadow-lg flex items-center justify-center" style={{ backgroundColor: 'var(--brand-primary)' }}>
                   <section.icon size={28} />
                </div>
                <div>
@@ -102,6 +139,24 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
             </div>
 
             <div className="p-10">
+               {section.title === "هوية العلامة التجارية" && (
+                 <div className="mb-10 p-6 bg-slate-50 rounded-3xl border border-slate-100">
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 px-1">الأنماط الجاهزة (Presets)</p>
+                    <div className="flex flex-wrap gap-3">
+                       {presets.map((preset) => (
+                         <button
+                           key={preset.name}
+                           type="button"
+                           onClick={() => applyPreset(preset.primary, preset.accent, preset.bg)}
+                           className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all active:scale-95 group"
+                         >
+                            <div className={cn("h-6 w-6 rounded-lg shadow-inner", preset.color)} />
+                            <span className="text-sm font-black text-slate-700">{preset.name}</span>
+                         </button>
+                       ))}
+                    </div>
+                 </div>
+               )}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   {section.fields.map((field) => (
                     <div key={field.name} className={cn("space-y-3", field.isTextArea && "md:col-span-2")}>
@@ -109,27 +164,53 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
                           {field.label}
                        </label>
                        <div className="relative group">
-                          <div className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors pointer-events-none">
-                             {!field.isTextArea && <field.icon size={20} />}
-                          </div>
                           {field.isTextArea ? (
                              <textarea 
                                 id={field.name}
                                 name={field.name}
                                 defaultValue={field.defaultValue}
-                                className="w-full h-32 rounded-2xl bg-slate-50 border border-slate-100 p-6 font-bold text-slate-700 outline-none ring-2 ring-transparent focus:ring-slate-900 transition-all resize-none"
+                                className="w-full h-32 rounded-2xl bg-slate-50 border border-slate-100 p-6 font-bold text-slate-700 outline-none ring-2 ring-transparent focus:ring-[var(--brand-primary)] transition-all resize-none"
                                 placeholder="..."
                                 required
                              />
+                          ) : field.isColor ? (
+                             <div className="flex items-center gap-4">
+                                <input 
+                                   id={field.name}
+                                   name={field.name}
+                                   type="color"
+                                   value={field.name === "themePrimary" ? themePrimary : field.name === "themeAccent" ? themeAccent : themeBgColor}
+                                   onChange={(e) => {
+                                      if (field.name === "themePrimary") setThemePrimary(e.target.value);
+                                      else if (field.name === "themeAccent") setThemeAccent(e.target.value);
+                                      else if (field.name === "themeBgColor") setThemeBgColor(e.target.value);
+                                   }}
+                                   className="h-16 w-24 rounded-2xl bg-white border border-slate-100 p-1 cursor-pointer outline-none ring-2 ring-transparent focus:ring-[var(--brand-primary)] transition-all shadow-sm"
+                                />
+                                <input 
+                                   type="text"
+                                   value={field.name === "themePrimary" ? themePrimary : field.name === "themeAccent" ? themeAccent : themeBgColor}
+                                   onChange={(e) => {
+                                      if (field.name === "themePrimary") setThemePrimary(e.target.value);
+                                      else if (field.name === "themeAccent") setThemeAccent(e.target.value);
+                                      else if (field.name === "themeBgColor") setThemeBgColor(e.target.value);
+                                   }}
+                                   className="flex-1 h-16 rounded-2xl bg-slate-50 px-6 font-bold text-slate-700 border border-slate-100 outline-none focus:ring-2 focus:ring-[var(--brand-primary)] transition-all"
+                                   placeholder="#000000"
+                                />
+                             </div>
                           ) : (
                              <input 
                                 id={field.name}
                                 name={field.name}
                                 type={field.type || "text"}
-                                defaultValue={field.defaultValue}
-                                className="w-full h-16 rounded-2xl bg-slate-50 pr-14 pl-6 font-bold text-slate-700 border border-slate-100 outline-none ring-2 ring-transparent focus:ring-slate-900 transition-all"
+                                value={field.name === "themeBgImage" ? themeBgImage : field.defaultValue}
+                                onChange={(e) => {
+                                   if (field.name === "themeBgImage") setThemeBgImage(e.target.value);
+                                }}
+                                className="w-full h-16 rounded-2xl bg-slate-50 pr-14 pl-6 font-bold text-slate-700 border border-slate-100 outline-none ring-2 ring-transparent focus:ring-[var(--brand-primary)] transition-all"
                                 placeholder="..."
-                                required
+                                required={!field.name.startsWith("theme")}
                              />
                           )}
                        </div>
@@ -143,7 +224,7 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
 
       {/* Floating Action Bar - Adjusted distance to avoid mobile bottom nav overlap */}
       <div className="sticky bottom-32 lg:bottom-8 z-30">
-         <div className="premium-card p-6 bg-slate-900 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl shadow-slate-900/40 border-none">
+         <div className="premium-card p-6 text-white flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl border-none" style={{ backgroundColor: 'var(--brand-primary)', boxShadow: '0 25px 50px -12px color-mix(in srgb, var(--brand-primary), transparent 60%)' }}>
             <div className="flex items-center gap-4">
               {success ? (
                 <div className="flex items-center gap-3 text-emerald-400">

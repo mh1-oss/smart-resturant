@@ -157,7 +157,8 @@ export default function StaffClient({ initialUsers }: { initialUsers: any[] }) {
               animate={{ opacity: 1 }} 
               exit={{ opacity: 0 }} 
               onClick={() => setIsModalOpen(false)} 
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md" 
+              className="fixed inset-0 backdrop-blur-md" 
+              style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 40%)' }}
             />
             <motion.div 
               initial={{ scale: 0.9, opacity: 0, y: 20 }} 
@@ -167,7 +168,7 @@ export default function StaffClient({ initialUsers }: { initialUsers: any[] }) {
             >
               <div className="p-8 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-5">
-                  <div className="h-14 w-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg">
+                  <div className="h-14 w-14 text-white rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: 'var(--brand-primary)' }}>
                     <UserPlus size={28} />
                   </div>
                   <div>
@@ -250,7 +251,7 @@ export default function StaffClient({ initialUsers }: { initialUsers: any[] }) {
         {/* Delete Confirm Modal */}
         {confirmDeleteUserId && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setConfirmDeleteUserId(null)} className="fixed inset-0 bg-slate-900/80 backdrop-blur-md" />
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setConfirmDeleteUserId(null)} className="fixed inset-0 backdrop-blur-md" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 20%)' }} />
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="w-full max-w-sm premium-card p-10 text-center relative z-10">
               <div className="mx-auto w-24 h-24 bg-rose-50 text-rose-500 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-xl shadow-rose-500/10">
                 <Trash2 className="w-12 h-12" />

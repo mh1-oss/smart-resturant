@@ -133,7 +133,7 @@ export default function DeliveryClient({
   return (
     <div className="space-y-12 pb-24">
       {/* Driver Welcome Card */}
-      <div className="premium-card p-8 bg-slate-900 text-white relative overflow-hidden group">
+      <div className="premium-card p-8 text-white relative overflow-hidden group" style={{ backgroundColor: 'var(--brand-primary)' }}>
         <div className="absolute -right-10 -top-10 opacity-10 group-hover:scale-125 transition-transform duration-700">
            <Truck size={180} className="rotate-12" />
         </div>
@@ -309,7 +309,7 @@ export default function DeliveryClient({
                     >
                         <div className="flex justify-between items-start mb-6">
                             <div className="flex items-center gap-4">
-                            <div className="h-14 w-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-xl font-black relative">
+                            <div className="h-14 w-14 rounded-2xl text-white flex items-center justify-center text-xl font-black relative" style={{ backgroundColor: 'var(--brand-primary)' }}>
                                 {order.id}
                                 {hasGps && (
                                     <div className="absolute -top-1 -right-1 h-5 w-5 bg-emerald-500 rounded-full flex items-center justify-center border-2 border-white animate-pulse">

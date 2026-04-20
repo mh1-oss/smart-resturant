@@ -123,7 +123,7 @@ export default function CashierClient({
       <div className="space-y-12 print:hidden">
         {/* Financial Summary */}
         <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
-          <div className="premium-card p-10 bg-slate-900 text-white relative overflow-hidden group animate-scale-in">
+          <div className="premium-card p-10 text-white relative overflow-hidden group animate-scale-in" style={{ backgroundColor: 'var(--brand-primary)' }}>
             <div className="absolute -top-10 -right-10 opacity-10 group-hover:scale-125 transition-transform duration-700">
               <Wallet className="h-48 w-48 rotate-12" />
             </div>
@@ -178,7 +178,7 @@ export default function CashierClient({
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-5">
-                      <div className="h-16 w-16 rounded-[2rem] bg-slate-900 text-white flex items-center justify-center text-3xl font-black shadow-xl shadow-slate-900/20 group-hover:scale-110 transition-transform">
+                      <div className="h-16 w-16 rounded-[2rem] text-white flex items-center justify-center text-3xl font-black shadow-xl shadow-slate-900/20 group-hover:scale-110 transition-transform" style={{ backgroundColor: 'var(--brand-primary)' }}>
                         {session.table.table_number}
                       </div>
                       <div>

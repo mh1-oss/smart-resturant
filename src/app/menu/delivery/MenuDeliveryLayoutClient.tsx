@@ -180,7 +180,7 @@ export default function MenuDeliveryLayoutClient({
 
   return (
     <>
-      <div className="min-h-screen bg-[#f8fafc] pb-40">
+      <div className="min-h-screen pb-40" style={{ backgroundColor: 'var(--theme-bg)' }}>
         {children}
       </div>
 
@@ -191,7 +191,7 @@ export default function MenuDeliveryLayoutClient({
             className="flex h-[52px] items-center gap-2 rounded-full bg-white px-5 font-black text-slate-700 shadow-xl ring-1 ring-slate-200 active:scale-95"
           >
             <span className="text-sm">طلباتي</span>
-            <Truck className="h-5 w-5 text-amber-500" />
+            <Truck className="h-5 w-5" style={{ color: 'var(--brand-accent)' }} />
           </button>
         </motion.div>
 
@@ -206,10 +206,11 @@ export default function MenuDeliveryLayoutClient({
             >
               <button
                 onClick={() => setShowCartPanel(true)}
-                className="flex h-[52px] items-center gap-3 rounded-full bg-slate-900 px-6 text-white shadow-2xl active:scale-95 transition-all"
+                className="flex h-[52px] items-center gap-3 rounded-full px-6 text-white shadow-2xl active:scale-95 transition-all"
+                style={{ backgroundColor: 'var(--brand-primary)' }}
               >
                 <div className="flex flex-col items-end">
-                  <p className="text-[10px] font-bold text-slate-400 leading-none mb-0.5 uppercase tracking-wider">السلة</p>
+                  <p className="text-[10px] font-bold text-white/70 leading-none mb-0.5 uppercase tracking-wider">السلة</p>
                   <p className="text-sm font-black leading-none">{formatCurrency(totalPrice, currency)}</p>
                 </div>
                 <ShoppingBag className="h-5 w-5" />
@@ -222,7 +223,7 @@ export default function MenuDeliveryLayoutClient({
       <AnimatePresence>
         {showCartPanel && (
            <div key="cart-panel" className="fixed inset-0 z-[200]">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCartPanel(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCartPanel(false)} className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 40%, transparent)' }} />
              <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="absolute inset-x-0 bottom-0 max-h-[85vh] rounded-t-[32px] bg-white p-6 shadow-2xl flex flex-col">
                <div className="mb-6 flex items-center justify-between">
                  <h2 className="text-xl font-black text-slate-900">سلة طلباتك</h2>
@@ -255,19 +256,20 @@ export default function MenuDeliveryLayoutClient({
                   </div>
                   <div className="flex items-center justify-between px-2 text-sm text-right">
                     <span className="font-bold text-slate-500">سعر التوصيل</span>
-                    <span className="font-black text-amber-600">+{formatCurrency(Number(deliveryFee), currency)}</span>
+                    <span className="font-black" style={{ color: 'var(--brand-accent)' }}>+{formatCurrency(Number(deliveryFee), currency)}</span>
                   </div>
                   <div className="flex items-center justify-between px-2 pt-3 border-t border-slate-50 text-right">
                     <span className="font-black text-slate-900">الإجمالي النهائي</span>
                     <span className="text-2xl font-black text-slate-900">{formatCurrency((totalPrice * (1 + (Number(taxRate) / 100))) + Number(deliveryFee), currency)}</span>
                   </div>
-                 <button 
-                  onClick={() => setShowCheckoutModal(true)} 
-                  className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-xl shadow-slate-900/20 active:scale-95 transition-transform flex items-center justify-center gap-3"
-                 >
-                   متابعة الطلب
-                   <ShoppingBag size={20} />
-                 </button>
+                  <button 
+                   onClick={() => setShowCheckoutModal(true)} 
+                   className="w-full h-16 text-white rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3"
+                   style={{ backgroundColor: 'var(--brand-primary)' }}
+                  >
+                    متابعة الطلب
+                    <ShoppingBag size={20} />
+                  </button>
                </div>
              </motion.div>
            </div>
@@ -275,7 +277,7 @@ export default function MenuDeliveryLayoutClient({
 
         {showCheckoutModal && (
           <div key="checkout-modal" className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !isSubmitting && setShowCheckoutModal(false)} className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" />
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => !isSubmitting && setShowCheckoutModal(false)} className="absolute inset-0 backdrop-blur-md" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 60%, transparent)' }} />
              <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="relative w-full max-w-md bg-white p-8 rounded-t-[32px] sm:rounded-[32px] shadow-2xl overflow-hidden overflow-y-auto max-h-[90vh]">
                {isSuccess ? (
                   <div className="text-center py-10 space-y-4">
@@ -306,10 +308,11 @@ export default function MenuDeliveryLayoutClient({
                             type="button"
                             onClick={handleGetLocation}
                             disabled={isLocating}
-                            className={cn(
-                              "absolute left-2 top-1/2 -translate-y-1/2 h-10 px-3 text-white text-[10px] font-black rounded-lg shadow-lg active:scale-95 transition-all flex items-center gap-1",
-                              isLocating ? "bg-slate-400" : "bg-slate-900"
-                            )}
+                             className={cn(
+                               "absolute left-2 top-1/2 -translate-y-1/2 h-10 px-3 text-white text-[10px] font-black rounded-lg shadow-lg active:scale-95 transition-all flex items-center gap-1",
+                               isLocating ? "bg-slate-400" : ""
+                             )}
+                             style={!isLocating ? { backgroundColor: 'var(--brand-primary)' } : {}}
                           >
                             {isLocating ? (
                               <div className="flex items-center gap-1">
@@ -330,7 +333,7 @@ export default function MenuDeliveryLayoutClient({
                         <div className="space-y-2">
                            <div className="flex items-center justify-between px-1">
                               <span className="text-[10px] font-black text-slate-400 uppercase">حرك الدبوس لتحديد منزلك بدقة</span>
-                              <span className="text-[10px] font-black text-amber-500 flex items-center gap-1 animate-pulse">
+                              <span className="text-[10px] font-black flex items-center gap-1 animate-pulse" style={{ color: 'var(--brand-accent)' }}>
                                  <Zap size={10} /> تحديد دقيق
                               </span>
                            </div>
@@ -342,7 +345,7 @@ export default function MenuDeliveryLayoutClient({
                     </div>
                     <div className="flex gap-4">
                       <button type="button" onClick={() => setShowCheckoutModal(false)} className="flex-1 h-14 font-black text-slate-500 bg-slate-100 rounded-xl">رجوع</button>
-                      <button type="submit" disabled={isSubmitting} className="flex-[2] h-14 font-black text-white bg-slate-900 rounded-xl shadow-lg">
+                      <button type="submit" disabled={isSubmitting} className="flex-[2] h-14 font-black text-white rounded-xl shadow-lg" style={{ backgroundColor: 'var(--brand-primary)' }}>
                         {isSubmitting ? "جاري الإرسال..." : "إتمام الطلب"}
                       </button>
                     </div>
@@ -354,7 +357,7 @@ export default function MenuDeliveryLayoutClient({
 
         {showOrdersPanel && (
            <div key="orders-panel" className="fixed inset-0 z-[200]">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowOrdersPanel(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowOrdersPanel(false)} className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 40%, transparent)' }} />
              <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="absolute inset-x-0 bottom-0 max-h-[85vh] rounded-t-[32px] bg-white p-6 shadow-2xl flex flex-col">
                <div className="mb-6 flex items-center justify-between">
                  <h2 className="text-xl font-black text-slate-900">طلباتي</h2>
@@ -365,13 +368,13 @@ export default function MenuDeliveryLayoutClient({
                    <div key={order.id} className="rounded-2xl border border-slate-100 bg-white p-4">
                      <div className="flex items-center justify-between mb-3">
                        <span className="text-xs font-bold text-slate-400">{new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
-                       <span className={cn(
-                         "px-3 py-1 rounded-lg text-[10px] font-black uppercase",
-                         order.status === "Pending" ? "bg-amber-100 text-amber-600" : 
-                         order.status === "Ready" ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600"
-                       )}>
-                         {order.status === "Pending" ? "بانتظار التأكيد" : order.status === "Preparing" ? "قيد التحضير" : order.status === "Ready" ? "بالطريق" : "تم التوصيل"}
-                       </span>
+                        <span className={cn(
+                          "px-3 py-1 rounded-lg text-[10px] font-black uppercase",
+                          order.status === "Pending" ? "bg-[var(--brand-accent)] text-white" : 
+                          order.status === "Ready" ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600"
+                        )}>
+                          {order.status === "Pending" ? "بانتظار التأكيد" : order.status === "Preparing" ? "قيد التحضير" : order.status === "Ready" ? "بالطريق" : "تم التوصيل"}
+                        </span>
                      </div>
                      <div className="space-y-1">
                         {order.items.map((item: any) => (
@@ -385,7 +388,7 @@ export default function MenuDeliveryLayoutClient({
                      {order.driver && (
                         <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
                           <div className="flex items-center gap-3 text-right">
-                            <div className="h-10 w-10 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-black">
+                            <div className="h-10 w-10 rounded-full text-white flex items-center justify-center text-xs font-black" style={{ backgroundColor: 'var(--brand-primary)' }}>
                               {order.driver.name?.[0] || <User size={14} />}
                             </div>
                             <div>
@@ -443,7 +446,8 @@ export default function MenuDeliveryLayoutClient({
                   {isActive && (
                     <motion.div
                       layoutId="delivery-nav-pill"
-                      className="absolute inset-0 bg-black rounded-2xl z-0 shadow-lg shadow-black/20"
+                      className="absolute inset-0 rounded-2xl z-0 shadow-lg"
+                      style={{ backgroundColor: 'var(--brand-primary)' }}
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}

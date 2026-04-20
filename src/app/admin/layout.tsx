@@ -48,11 +48,11 @@ export default async function AdminLayout({
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#fcfdfe] font-sans">
+    <div className="flex h-screen overflow-hidden font-sans" style={{ backgroundColor: 'var(--theme-bg)' }}>
       {/* Sidebar - Desktop Only */}
       <aside className="hidden h-screen w-[320px] flex-col border-l border-slate-200/60 bg-white p-6 lg:flex shrink-0">
         <div className="mb-8 flex items-center gap-4 px-2 shrink-0">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-900/20">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl text-white shadow-lg shadow-slate-900/20" style={{ backgroundColor: 'var(--brand-primary)' }}>
             <UtensilsCrossed className="h-7 w-7" />
           </div>
           <div>
@@ -95,7 +95,7 @@ export default async function AdminLayout({
         </header>
 
         {/* Scrollable Content Container */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar bg-[#fcfdfe]">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar" style={{ backgroundColor: 'var(--theme-bg)' }}>
           <div className="px-4 lg:px-8 pb-32 lg:pb-10 pt-6">
             <div className="max-w-7xl mx-auto">
                 {children}

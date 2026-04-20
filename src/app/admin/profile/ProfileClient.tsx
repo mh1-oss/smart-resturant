@@ -119,7 +119,8 @@ export default function ProfilePage({ user }: { user: any }) {
                         <button 
                             type="submit"
                             disabled={isUpdatingProfile}
-                            className="w-full h-14 rounded-2xl bg-indigo-600 text-white font-black hover:bg-slate-900 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:grayscale shadow-xl shadow-indigo-600/20"
+                            className="w-full h-14 rounded-2xl text-white font-black transition-all flex items-center justify-center gap-2 active:scale-95 disabled:grayscale shadow-xl shadow-indigo-600/20"
+                            style={{ backgroundColor: 'var(--brand-primary)' }}
                         >
                             {isUpdatingProfile ? <Loader2 className="animate-spin" /> : <Save size={20} />}
                             حفظ التعديلات
@@ -186,7 +187,8 @@ export default function ProfilePage({ user }: { user: any }) {
                         <button 
                             type="submit"
                             disabled={isChangingPassword}
-                            className="w-full h-14 rounded-2xl bg-rose-600 text-white font-black hover:bg-slate-900 transition-all flex items-center justify-center gap-2 active:scale-95 disabled:grayscale shadow-xl shadow-rose-600/20"
+                            className="w-full h-14 rounded-2xl text-white font-black transition-all flex items-center justify-center gap-2 active:scale-95 disabled:grayscale shadow-xl shadow-rose-600/20"
+                            style={{ backgroundColor: 'var(--brand-primary)' }}
                         >
                             {isChangingPassword ? <Loader2 className="animate-spin" /> : <Lock size={20} />}
                             تغيير كلمة السر

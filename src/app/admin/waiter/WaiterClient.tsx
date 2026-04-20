@@ -125,8 +125,10 @@ export default function WaiterClient({
                             <div className="flex items-center gap-3">
                                 <span className={cn(
                                     "h-12 w-12 rounded-2xl flex items-center justify-center font-black text-lg shadow-lg transition-transform group-hover:scale-110",
-                                    order.waiter_id === userId ? "bg-emerald-500 text-white shadow-emerald-500/20" : "bg-slate-900 text-white shadow-slate-900/20"
-                                )}>
+                                    order.waiter_id === userId ? "bg-emerald-500 text-white shadow-emerald-500/20" : "text-white shadow-slate-900/20"
+                                )}
+                                style={order.waiter_id !== userId ? { backgroundColor: 'var(--brand-primary)' } : {}}
+                                >
                                     {order.session?.table?.table_number || "?"}
                                 </span>
                                 <div>
@@ -285,7 +287,7 @@ export default function WaiterClient({
         </div>
       </div>
 
-      <div className="bg-slate-900/5 h-px w-full" />
+      <div className="h-px w-full" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 5%, transparent)' }} />
 
       {/* Tables Overview Grid */}
       <div className="space-y-10">
@@ -296,7 +298,7 @@ export default function WaiterClient({
             </div>
             <div className="flex gap-4">
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-slate-900" />
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'var(--brand-primary)' }} />
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">مشغولة</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -324,9 +326,10 @@ export default function WaiterClient({
                     isOccupied 
                       ? isBillRequested
                         ? "bg-amber-500 border-amber-400 ring-4 ring-amber-500/20 shadow-xl shadow-amber-500/40"
-                        : "bg-slate-900 border-slate-800 ring-4 ring-slate-900/10 shadow-xl shadow-slate-900/30" 
+                        : "border-slate-800 ring-4 ring-slate-900/10 shadow-xl shadow-slate-900/30 text-white" 
                       : "bg-white border-2 border-dashed border-slate-200 hover:border-slate-900 hover:bg-slate-50 shadow-sm"
                   )}
+                  style={isOccupied && !isBillRequested ? { backgroundColor: 'var(--brand-primary)' } : {}}
                 >
                   <div className={cn(
                     "h-16 w-16 rounded-[2rem] flex items-center justify-center text-3xl font-black mb-4 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6",
@@ -360,7 +363,8 @@ export default function WaiterClient({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedTable(null)}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100]"
+              className="fixed inset-0 backdrop-blur-md z-[100]"
+              style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 60%, transparent)' }}
             />
             <motion.div
               initial={{ x: "100%" }}
@@ -372,7 +376,7 @@ export default function WaiterClient({
                 {/* Drawer Header */}
                 <div className="p-8 border-b border-slate-100 flex items-center justify-between">
                     <div className="flex items-center gap-5">
-                        <div className="h-16 w-16 rounded-[2rem] bg-slate-900 text-white flex items-center justify-center text-3xl font-black shadow-xl">
+                        <div className="h-16 w-16 rounded-[2rem] text-white flex items-center justify-center text-3xl font-black shadow-xl" style={{ backgroundColor: 'var(--brand-primary)' }}>
                             {selectedTable.table_number}
                         </div>
                         <div>
@@ -396,8 +400,10 @@ export default function WaiterClient({
                                 <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-2">الحالة الراهنة</p>
                                 <div className={cn(
                                     "inline-flex px-6 py-2 rounded-full text-sm font-black uppercase tracking-widest text-white shadow-lg",
-                                    selectedTable.sessions[0].status === "BillRequested" ? "bg-amber-500" : "bg-slate-900"
-                                )}>
+                                    selectedTable.sessions[0].status === "BillRequested" ? "bg-amber-500" : ""
+                                )}
+                                style={selectedTable.sessions[0].status !== "BillRequested" ? { backgroundColor: 'var(--brand-primary)' } : {}}
+                                >
                                     {selectedTable.sessions[0].status}
                                 </div>
                             </div>

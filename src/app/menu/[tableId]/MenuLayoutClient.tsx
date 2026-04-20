@@ -63,7 +63,7 @@ export default function MenuLayoutClient({
 
   return (
     <>
-      <div className="min-h-screen bg-[#f8fafc]">
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--theme-bg)' }}>
         <div className="pb-40">
           {children}
         </div>
@@ -76,7 +76,7 @@ export default function MenuLayoutClient({
             className="flex h-[52px] items-center gap-2 rounded-full bg-white px-5 font-black text-slate-700 shadow-xl ring-1 ring-slate-200 active:scale-95"
           >
             <span className="text-sm">طلباتي</span>
-            <UtensilsCrossed size={18} className="text-amber-500" />
+            <UtensilsCrossed size={18} style={{ color: 'var(--brand-accent)' }} />
           </button>
         </motion.div>
 
@@ -91,10 +91,11 @@ export default function MenuLayoutClient({
             >
               <button
                 onClick={() => setShowCartPanel(true)}
-                className="flex h-[52px] items-center gap-3 rounded-full bg-slate-900 px-6 text-white shadow-2xl active:scale-95"
+                className="flex h-[52px] items-center gap-3 rounded-full px-6 text-white shadow-2xl active:scale-95"
+                style={{ backgroundColor: 'var(--brand-primary)' }}
               >
                 <div className="flex flex-col items-end">
-                  <p className="text-[10px] font-bold text-slate-400 leading-none mb-0.5">الطاولة</p>
+                  <p className="text-[10px] font-bold text-white/70 leading-none mb-0.5">الطاولة</p>
                   <p className="text-sm font-black leading-none">{formatCurrency(totalPrice, currency)}</p>
                 </div>
                 <ShoppingBag size={20} />
@@ -107,7 +108,7 @@ export default function MenuLayoutClient({
       <AnimatePresence>
         {showCartPanel && (
            <div key="cart-panel" className="fixed inset-0 z-[200]">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCartPanel(false)} className="absolute inset-0 bg-slate-900/60" />
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCartPanel(false)} className="absolute inset-0" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 60%, transparent)' }} />
              <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="absolute inset-x-0 bottom-0 max-h-[85vh] rounded-t-[32px] bg-white p-6 shadow-2xl flex flex-col">
                <div className="mb-6 flex items-center justify-between">
                  <h2 className="text-xl font-black text-slate-900">سلة طلباتك</h2>
@@ -154,7 +155,8 @@ export default function MenuLayoutClient({
                  <button 
                   onClick={handleConfirmOrder} 
                   disabled={isSubmitting || cart.length === 0}
-                  className="w-full h-16 bg-slate-900 text-white rounded-2xl font-black text-lg shadow-xl shadow-slate-900/20 active:scale-95 transition-transform flex items-center justify-center gap-3 disabled:opacity-50"
+                  className="w-full h-16 text-white rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3 disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--brand-primary)' }}
                  >
                    {isSubmitting ? "جاري الإرسال..." : "تأكيد وإرسال الطلب"}
                    <UtensilsCrossed size={20} />
@@ -166,7 +168,7 @@ export default function MenuLayoutClient({
 
         {showOrdersPanel && (
            <div key="orders-panel" className="fixed inset-0 z-[200]">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowOrdersPanel(false)} className="absolute inset-0 bg-slate-900/60" />
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowOrdersPanel(false)} className="absolute inset-0" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 60%, transparent)' }} />
              <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="absolute inset-x-0 bottom-0 max-h-[85vh] rounded-t-[32px] bg-white p-6 shadow-2xl flex flex-col">
                <div className="mb-6 flex items-center justify-between">
                  <h2 className="text-xl font-black text-slate-900">طلبات طاولتك</h2>
@@ -179,7 +181,7 @@ export default function MenuLayoutClient({
                        <span className="text-xs font-bold text-slate-400">{new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
                        <span className={cn(
                          "px-3 py-1 rounded-lg text-[10px] font-black uppercase",
-                         order.status === "Pending" ? "bg-amber-100 text-amber-600" : 
+                         order.status === "Pending" ? "bg-[var(--brand-accent)] text-white" : 
                          ["Served", "Ready"].includes(order.status) ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600"
                        )}>
                          {order.status === "Pending" ? "بانتظار التأكيد" : order.status === "Preparing" ? "قيد التحضير" : order.status === "Ready" ? "جاهز!" : "تم التقديم"}
@@ -222,7 +224,8 @@ export default function MenuLayoutClient({
                   {isActive && (
                     <motion.div
                       layoutId="nav-pill"
-                      className="absolute inset-0 bg-black rounded-2xl z-0 shadow-lg shadow-black/20"
+                      className="absolute inset-0 rounded-2xl z-0 shadow-lg"
+                      style={{ backgroundColor: 'var(--brand-primary)' }}
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}

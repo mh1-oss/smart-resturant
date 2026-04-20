@@ -124,7 +124,7 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
               {/* Card Header */}
               <div className="p-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg">
+                    <div className="h-12 w-12 rounded-2xl text-white flex items-center justify-center font-black text-lg" style={{ backgroundColor: 'var(--brand-primary)' }}>
                        {session.table?.table_number || "خ"}
                     </div>
                     <div>
@@ -177,10 +177,11 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
                  </div>
               </div>
 
-              {/* Card Action */}
               <button 
                 onClick={() => setSelectedSession(session)}
-                className="w-full h-14 bg-white hover:bg-slate-900 hover:text-white transition-all font-black text-xs flex items-center justify-center gap-2 border-t border-slate-50 group/btn"
+                className="w-full h-14 bg-white hover:text-white transition-all font-black text-xs flex items-center justify-center gap-2 border-t border-slate-50 group/btn"
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--brand-primary)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
               >
                  عرض التفاصيل الكاملة
                  <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
@@ -199,7 +200,8 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setSelectedSession(null)}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100]"
+              className="fixed inset-0 backdrop-blur-md z-[100]"
+              style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 40%)' }}
             />
             <motion.div
               initial={{ x: "100%" }}
@@ -209,7 +211,7 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
             >
                <div className="p-8 border-b border-slate-100 flex items-center justify-between">
                   <div className="flex items-center gap-5">
-                     <div className="h-16 w-16 rounded-[2rem] bg-slate-900 text-white flex items-center justify-center text-3xl font-black">
+                     <div className="h-16 w-16 rounded-[2rem] text-white flex items-center justify-center text-3xl font-black" style={{ backgroundColor: 'var(--brand-primary)' }}>
                         {selectedSession.table?.table_number || "خ"}
                      </div>
                      <div>
@@ -263,7 +265,8 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
                   </div>
                   <button 
                     onClick={() => setSelectedSession(null)}
-                    className="w-full h-16 bg-slate-900 text-white rounded-[1.5rem] font-black text-lg hover:bg-slate-800 transition-all active:scale-95 shadow-xl shadow-slate-900/10"
+                    className="w-full h-16 text-white rounded-[1.5rem] font-black text-lg transition-all active:scale-95 shadow-xl shadow-slate-900/10"
+                    style={{ backgroundColor: 'var(--brand-primary)' }}
                   >
                      تمت المراجعة
                   </button>
@@ -280,7 +283,8 @@ export default function ArchiveClient({ initialSessions, currency }: { initialSe
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-slate-900/80 backdrop-blur-xl"
+            className="fixed inset-0 z-[110] flex items-center justify-center p-6 backdrop-blur-xl"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 20%)' }}
           >
              <motion.div
                initial={{ scale: 0.9, opacity: 0 }}

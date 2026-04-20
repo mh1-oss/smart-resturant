@@ -99,7 +99,8 @@ export default function OffersClient({
         
         <button
           onClick={() => setShowAddModal(true)}
-          className="h-16 px-10 rounded-[1.5rem] bg-slate-900 text-white font-black flex items-center gap-3 shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          className="h-16 px-10 rounded-[1.5rem] text-white font-black flex items-center gap-3 shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          style={{ backgroundColor: 'var(--brand-primary)' }}
         >
           <Plus size={20} />
           إنشاء عرض جديد
@@ -135,8 +136,9 @@ export default function OffersClient({
                       onClick={() => handleToggle(offer.id, offer.is_active)}
                       className={cn(
                         "h-10 w-10 rounded-xl flex items-center justify-center transition-all active:scale-90",
-                        offer.is_active ? "bg-white text-emerald-600 shadow-sm" : "bg-slate-900 text-white"
+                        offer.is_active ? "bg-white text-emerald-600 shadow-sm" : "text-white"
                       )}
+                      style={!offer.is_active ? { backgroundColor: 'var(--brand-primary)' } : {}}
                     >
                       <Power size={18} />
                     </button>
@@ -216,7 +218,8 @@ export default function OffersClient({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowAddModal(false)}
-              className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100]"
+              className="fixed inset-0 backdrop-blur-md z-[100]"
+              style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 40%)' }}
             />
             <motion.div
               initial={{ x: "100%" }}
@@ -292,9 +295,14 @@ export default function OffersClient({
                                  className={cn(
                                    "flex items-center justify-between p-4 rounded-2xl transition-all border-2 text-right",
                                    isSelected 
-                                     ? "bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-900/10" 
+                                     ? "text-white shadow-xl" 
                                      : "bg-white border-slate-100 text-slate-600 hover:border-slate-300"
                                  )}
+                                 style={isSelected ? { 
+                                     backgroundColor: 'var(--brand-primary)', 
+                                     borderColor: 'var(--brand-primary)',
+                                     boxShadow: '0 20px 25px -5px color-mix(in srgb, var(--brand-primary), transparent 90%)'
+                                 } : undefined}
                                >
                                  <div className="flex flex-col">
                                     <span className="text-sm font-black leading-tight">{item.name}</span>
@@ -327,11 +335,12 @@ export default function OffersClient({
                   >
                      إلغاء
                   </button>
-                  <button
+                   <button
                     type="submit"
                     onClick={handleCreate}
                     disabled={isSubmitting}
-                    className="flex-[2] h-16 rounded-[1.5rem] bg-slate-900 text-white font-black shadow-xl shadow-slate-900/20 hover:bg-black transition-all active:scale-95 disabled:opacity-50"
+                    className="flex-[2] h-16 rounded-[1.5rem] text-white font-black shadow-xl shadow-slate-900/20 hover:bg-black transition-all active:scale-95 disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--brand-primary)' }}
                   >
                     {isSubmitting ? "جاري الحفظ..." : "تأكيد وإطلاق العرض"}
                   </button>

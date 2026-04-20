@@ -18,7 +18,12 @@ export function SidebarUserCard({ user, signOutAction }: SidebarUserCardProps) {
       className="mt-auto premium-card !rounded-3xl border-slate-200 shrink-0 p-5 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 hover:scale-[1.02] transition-all duration-500 ease-out group"
     >
       <div className="flex items-center gap-3 mb-4 px-1">
-        <div className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-900 font-black text-lg group-hover:bg-slate-900 group-hover:text-white transition-all duration-500 shadow-sm">
+        <div 
+          className="h-12 w-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-900 font-black text-lg group-hover:text-white transition-all duration-500 shadow-sm"
+          style={{ '--hover-bg': 'var(--brand-primary)' } as any}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--brand-primary)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = ''}
+        >
           {user?.name?.[0] || "A"}
         </div>
         <div className="flex-1 min-w-0">

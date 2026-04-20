@@ -124,7 +124,7 @@ export default function KitchenClient({ initialOrders, restaurantName }: { initi
       {isRefreshing && (
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 glass-morphism px-6 py-3 rounded-full shadow-2xl transition-all animate-slide-up">
           <RefreshCcw className="h-4 w-4 text-emerald-500 animate-spin" />
-          <span className="text-xs font-black text-slate-900">تحديث تلقائي...</span>
+          <span className="text-xs font-black" style={{ color: 'var(--brand-primary)' }}>تحديث تلقائي...</span>
         </div>
       )}
 
@@ -148,7 +148,7 @@ export default function KitchenClient({ initialOrders, restaurantName }: { initi
           <div className="absolute -top-3 -left-3 z-10">
             <div className={cn(
                 "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg",
-                order.status === "Pending" ? "bg-amber-500 text-white animate-pulse" : 
+                order.status === "Pending" ? "style={{ background: 'var(--brand-accent)' }} text-white animate-pulse" : 
                 order.status === "Preparing" ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"
             )}>
                 {order.status === "Pending" ? "بانتظار التأكيد" : 
@@ -161,15 +161,16 @@ export default function KitchenClient({ initialOrders, restaurantName }: { initi
             <div className="flex items-center gap-4">
               <button 
                 onClick={() => handlePrint(order)}
-                className="h-14 w-14 rounded-2xl bg-white text-slate-900 border-2 border-slate-100 flex items-center justify-center hover:bg-slate-50 transition-all shadow-sm active:scale-95 group/print"
+                className="h-14 w-14 rounded-2xl bg-white border-2 border-slate-100 flex items-center justify-center hover:bg-slate-50 transition-all shadow-sm active:scale-95 group/print"
+                style={{ color: 'var(--brand-primary)' }}
                 title="طباعة الوصل"
               >
                 <Printer size={24} className="group-hover/print:scale-110 transition-transform" />
               </button>
               <div className={cn(
-                "h-16 w-16 rounded-3xl flex items-center justify-center text-2xl font-black shadow-xl",
-                order.type === "Delivery" ? "accent-gradient text-white" : "bg-slate-900 text-white"
-              )}>
+                "h-16 w-16 rounded-3xl flex items-center justify-center text-2xl font-black shadow-xl text-white",
+                order.type === "Delivery" ? "accent-gradient" : ""
+              )} style={order.type !== "Delivery" ? { backgroundColor: 'var(--brand-primary)' } : {}}>
                 {order.type === "Delivery" ? <Truck className="h-8 w-8" /> : order.session?.table.table_number || "?"}
               </div>
             </div>
@@ -177,7 +178,7 @@ export default function KitchenClient({ initialOrders, restaurantName }: { initi
                 <h3 className="text-lg font-black text-slate-900 leading-tight">
                   {order.type === "Delivery" ? (
                     <span className="flex flex-col">
-                      <span className="text-[10px] text-amber-600 font-black uppercase mb-0.5 tracking-tighter">طلب توصيل رقم {order.id}</span>
+                      <span className="text-[10px] font-black uppercase mb-0.5 tracking-tighter" style={{ color: 'var(--brand-accent)' }}>طلب توصيل رقم {order.id}</span>
                       <span className="truncate max-w-[150px]">{order.customer_name || "زبون خارجي"}</span>
                     </span>
                   ) : (
@@ -199,7 +200,7 @@ export default function KitchenClient({ initialOrders, restaurantName }: { initi
           <div className="flex-1 space-y-5 mb-8">
             {order.items.map((item: any) => (
               <div key={item.id} className="flex items-start gap-4">
-                <div className="flex-none h-8 w-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black text-xs shadow-md">
+                <div className="flex-none h-8 w-8 rounded-xl text-white flex items-center justify-center font-black text-xs shadow-md" style={{ backgroundColor: 'var(--brand-primary)' }}>
                   {item.quantity}
                 </div>
                 <div className="flex-1">

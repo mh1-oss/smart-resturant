@@ -15,20 +15,20 @@ export default async function DeliveryLayout({
   return (
     <CartProvider>
       <OrderProvider>
-        <div className="min-h-screen bg-[#f8fafc] pb-24 text-right" dir="rtl">
+        <div className="min-h-screen pb-24 text-right" style={{ backgroundColor: 'var(--theme-bg)' }} dir="rtl">
           {/* App Header */}
           <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-none transition-all duration-300">
             <div className="mx-auto max-w-3xl px-6 py-4 grid grid-cols-[1fr_auto_1fr] items-center gap-4 relative">
               {/* Right Side (Logo) */}
               <div className="flex-1 flex justify-start">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-lg shadow-amber-500/20 shrink-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shadow-lg shrink-0" style={{ backgroundColor: 'var(--brand-primary)' }}>
                   <Truck className="h-6 w-6" />
                 </div>
               </div>
 
               {/* True Center Action (Empty for Delivery top, or could be status) */}
               <div className="flex justify-center shrink-0">
-                <div className="px-4 py-1.5 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest">
+                <div className="px-4 py-1.5 rounded-full text-white text-[10px] font-black uppercase tracking-widest" style={{ backgroundColor: 'var(--brand-primary)' }}>
                   خدمة التوصيل
                 </div>
               </div>

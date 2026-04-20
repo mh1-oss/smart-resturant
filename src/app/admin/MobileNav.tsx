@@ -70,7 +70,8 @@ export default function MobileNav({ navItems, restaurantName, user, signOutActio
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsOpen(false)}
-            className="absolute inset-0 bg-slate-900/80 backdrop-blur-md"
+            className="absolute inset-0 backdrop-blur-md"
+            style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 80%, transparent)' }}
           />
 
           {/* Sidebar Drawer */}
@@ -85,7 +86,7 @@ export default function MobileNav({ navItems, restaurantName, user, signOutActio
             <div className="p-6 pb-2 shrink-0 border-b border-slate-50">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-900/20">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-lg shadow-slate-900/20" style={{ backgroundColor: 'var(--brand-primary)' }}>
                     <UtensilsCrossed className="h-6 w-6" />
                   </div>
                   <div>
@@ -115,9 +116,10 @@ export default function MobileNav({ navItems, restaurantName, user, signOutActio
                     className={cn(
                       "flex items-center justify-between rounded-[1.25rem] px-5 py-4.5 text-base font-bold transition-all duration-300 group",
                       isActive
-                        ? "bg-slate-900 text-white shadow-xl shadow-slate-900/10"
+                        ? "text-white shadow-xl shadow-slate-900/10"
                         : "text-slate-500 hover:bg-slate-50"
                     )}
+                    style={isActive ? { backgroundColor: 'var(--brand-primary)' } : {}}
                   >
                     <div className="flex items-center gap-4">
                       <Icon className={cn("h-5 w-5", isActive ? "stroke-[2.5px]" : "stroke-[2px]")} />
@@ -140,7 +142,7 @@ export default function MobileNav({ navItems, restaurantName, user, signOutActio
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-100 active:bg-slate-50 transition-colors group"
               >
-                  <div className="h-12 w-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-lg group-active:scale-95 transition-transform">
+                  <div className="h-12 w-12 rounded-2xl text-white flex items-center justify-center font-black text-lg group-active:scale-95 transition-transform" style={{ backgroundColor: 'var(--brand-primary)' }}>
                   {user?.name?.[0] || "A"}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -159,9 +161,10 @@ export default function MobileNav({ navItems, restaurantName, user, signOutActio
                     className={cn(
                       "flex flex-col items-center justify-center gap-2 rounded-2xl py-4 transition-all border-2 shadow-sm shadow-slate-200/50",
                       pathname === "/admin/settings" 
-                        ? "bg-slate-900 border-slate-900 text-white" 
+                        ? "border-slate-900 text-white" 
                         : "bg-white border-slate-100 text-slate-500 hover:bg-slate-50"
                     )}
+                    style={pathname === "/admin/settings" ? { backgroundColor: 'var(--brand-primary)', borderColor: 'var(--brand-primary)' } : {}}
                   >
                     <Settings size={20} />
                     <span className="text-[10px] font-black uppercase">الإعدادات</span>

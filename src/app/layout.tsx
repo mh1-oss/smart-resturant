@@ -3,6 +3,7 @@ import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/providers/SessionProvider";
 import { CartProvider } from "@/context/CartContext";
+import DynamicTheme from "@/components/DynamicTheme";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -31,6 +32,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <head>
+        <DynamicTheme />
+      </head>
       <body className={`${outfit.variable} ${inter.variable} font-sans antialiased`}>
         <SessionProvider>
           <CartProvider>
