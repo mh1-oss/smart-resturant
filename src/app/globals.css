@@ -8,16 +8,18 @@
     --brand-primary: 222.2 47.4% 11.2%; /* slate-900 */
     --brand-accent: 25 95% 53%; /* amber-500 */
     --brand-secondary: 262 83% 58%; /* violet-600 */
+    --brand-dark: 222.2 84% 4.9%; /* slate-950 */
     
     --color-background: 210 40% 98%; /* slate-50/100 */
     --color-surface: 0 0% 100%;
     
-    --surface-glass: rgba(255, 255, 255, 0.75);
+    --surface-glass: rgba(255, 255, 255, 0.7);
     --border-glass: rgba(255, 255, 255, 0.4);
     
     /* Shadows */
     --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
     --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --shadow-glow: 0 0 20px rgba(245, 158, 11, 0.15);
   }
 
   body {
@@ -33,11 +35,28 @@
 @layer components {
   /* Pro Max Elements */
   .glass-morphism {
-    background: var(--surface-glass);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid var(--border-glass);
-    box-shadow: var(--shadow-glass);
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.04);
+  }
+
+  .hover-lift {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.08);
+  }
+
+  .dark-glass {
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(25px) saturate(180%);
+    -webkit-backdrop-filter: blur(25px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
   .premium-card {
@@ -54,10 +73,22 @@
   }
 
   .pro-button {
-    @apply flex items-center justify-center gap-2 rounded-2xl font-black transition-all duration-300 active:scale-95;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 1rem;
+    font-weight: 900;
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     color: white;
     box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.3);
+  }
+
+  .pro-button:active {
+    transform: scale(0.95);
   }
 
   .pro-button:hover {
@@ -70,17 +101,27 @@
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-image: linear-gradient(to right, #0f172a, #334155, #0f172a);
   }
 
   /* Form Elements */
   .pro-input {
-    @apply w-full rounded-2xl border-none bg-slate-100 px-6 py-4 font-bold outline-none transition-all;
+    width: 100%;
+    border-radius: 1rem;
+    border: none;
+    background-color: #f1f5f9; /* slate-100 */
+    padding: 1rem 1.5rem;
+    font-weight: 700;
+    outline: none;
+    transition: all 0.2s;
   }
 
   .pro-input:focus {
-    @apply bg-white ring-4 ring-slate-900/5;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+    background-color: white;
+    box-shadow: 0 0 0 4px rgba(15, 23, 42, 0.05), inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
   }
 }
 
@@ -99,22 +140,31 @@
   background: #cbd5e1;
 }
 
-/* Animations */
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Faster, High-Performance Animations */
+@keyframes slide-up-premium {
+  from { 
+    opacity: 0; 
+    transform: translateY(15px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
 }
 
-@keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+.animate-entrance {
+  opacity: 0;
+  animation: slide-up-premium 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
 }
 
-.animate-slide-up {
-  animation: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Optimization: Simple background for better frame rates */
+body {
+  background: #f8fafc;
+  color: hsl(222.2 47.4% 11.2%);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+  font-family: var(--font-sans);
+  direction: rtl;
 }
 

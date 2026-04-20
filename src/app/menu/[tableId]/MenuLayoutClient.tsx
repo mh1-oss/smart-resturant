@@ -64,20 +64,12 @@ export default function MenuLayoutClient({
   return (
     <>
       <div className="min-h-screen bg-[#f8fafc]">
-        <AnimatePresence mode="wait">
-          <motion.div
-             key={pathname}
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             exit={{ opacity: 0 }}
-             className="pb-32"
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
+        <div className="pb-24">
+          {children}
+        </div>
       </div>
 
-      <div className="fixed inset-x-4 bottom-[92px] z-[100] flex items-center justify-between pointer-events-none">
+      <div className="fixed inset-x-4 bottom-[96px] z-[100] flex items-center justify-between pointer-events-none">
         <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="pointer-events-auto">
           <button
             onClick={() => setShowOrdersPanel(true)}
@@ -115,7 +107,7 @@ export default function MenuLayoutClient({
       <AnimatePresence>
         {showCartPanel && (
            <div key="cart-panel" className="fixed inset-0 z-[200]">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCartPanel(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCartPanel(false)} className="absolute inset-0 bg-slate-900/60" />
              <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="absolute inset-x-0 bottom-0 max-h-[85vh] rounded-t-[32px] bg-white p-6 shadow-2xl flex flex-col">
                <div className="mb-6 flex items-center justify-between">
                  <h2 className="text-xl font-black text-slate-900">سلة طلباتك</h2>
@@ -174,7 +166,7 @@ export default function MenuLayoutClient({
 
         {showOrdersPanel && (
            <div key="orders-panel" className="fixed inset-0 z-[200]">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowOrdersPanel(false)} className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" />
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowOrdersPanel(false)} className="absolute inset-0 bg-slate-900/60" />
              <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="absolute inset-x-0 bottom-0 max-h-[85vh] rounded-t-[32px] bg-white p-6 shadow-2xl flex flex-col">
                <div className="mb-6 flex items-center justify-between">
                  <h2 className="text-xl font-black text-slate-900">طلبات طاولتك</h2>
@@ -209,24 +201,43 @@ export default function MenuLayoutClient({
         )}
       </AnimatePresence>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200/60 bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-3xl items-stretch h-16">
-          {[
-            { href: `/menu/${tableId}`, label: "الرئيسية", icon: House },
-            { href: `/menu/${tableId}/offers`, label: "العروض", icon: Star }
-          ].map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link key={item.label} href={item.href} className={cn(
-                "flex-1 flex flex-col items-center justify-center transition-all",
-                isActive ? "text-slate-900" : "text-slate-400"
-              )}>
-                <Icon size={20} className={isActive ? "stroke-[2.5]" : "stroke-2"} />
-                <span className="text-[10px] font-black mt-1">{item.label}</span>
-              </Link>
-            );
-          })}
+      <nav className="fixed inset-x-6 bottom-6 z-50 overflow-hidden animate-entrance">
+        <div className="mx-auto max-w-3xl glass-morphism rounded-[32px] p-2 shadow-2xl shadow-slate-900/5 border-white/50">
+          <div className="flex items-stretch h-14 relative">
+            {[
+              { href: `/menu/${tableId}`, label: "الرئيسية", icon: House },
+              { href: `/menu/${tableId}/offers`, label: "العروض", icon: Star }
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link 
+                  key={item.label} 
+                  href={item.href} 
+                  className={cn(
+                    "relative flex-1 flex items-center justify-center gap-3 transition-all duration-500",
+                    isActive ? "text-white" : "text-slate-500 hover:text-slate-700"
+                  )}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-pill"
+                      className="absolute inset-0 bg-black rounded-2xl z-0 shadow-lg shadow-black/20"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <motion.div
+                    animate={isActive ? { scale: 1.1 } : { scale: 1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="flex items-center gap-2 relative z-10"
+                  >
+                    <Icon size={18} className={isActive ? "stroke-[2.5]" : "stroke-2"} />
+                    <span className="text-xs font-black">{item.label}</span>
+                  </motion.div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
     </>

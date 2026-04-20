@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useCart } from "@/context/CartContext";
-import { Search, Plus, X, ShoppingBag } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Search, Plus, ShoppingBag } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 
 export default function MenuClient({
@@ -38,13 +37,15 @@ export default function MenuClient({
   })();
 
   return (
-    <div className="pb-32">
+    <div>
       {/* Search & Categories Bar */}
-      <div className="sticky top-[72px] z-30 w-full bg-white/80 backdrop-blur-xl border-b border-slate-100">
+      <div className="sticky top-[72px] z-30 w-full bg-white border-b border-slate-100">
         <div className="mx-auto max-w-3xl px-6 py-4 space-y-4">
           <div className="relative">
             <Search className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
+              id="menu-search"
+              name="search"
               type="text"
               placeholder="ابحث عن وجبتك..."
               value={search}
@@ -88,10 +89,11 @@ export default function MenuClient({
       <div className="mx-auto max-w-3xl px-6 mt-8">
         <div className="grid gap-4">
           {filteredItems.length > 0 ? (
-              filteredItems.map((item: any) => (
+              filteredItems.map((item: any, index: number) => (
                 <div
                   key={item.id}
-                  className="group relative flex overflow-hidden rounded-[32px] border border-slate-100 bg-white p-3 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-200/40"
+                  style={{ animationDelay: `${Math.min(index * 0.03, 0.3)}s` }}
+                  className="animate-entrance group relative flex overflow-hidden rounded-[32px] border border-slate-100 bg-white p-3 shadow-sm transition-all hover:shadow-xl hover:shadow-slate-200/40"
                 >
                   <div className="relative h-28 w-28 overflow-hidden rounded-[24px] bg-slate-100 flex-shrink-0">
                     <img

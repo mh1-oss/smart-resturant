@@ -3,6 +3,7 @@ import { getSettings } from "@/app/actions/settings";
 import MenuDeliveryLayoutClient from "./MenuDeliveryLayoutClient";
 import { OrderProvider } from "@/context/OrderContext";
 import { CartProvider } from "@/context/CartContext";
+import Script from "next/script";
 
 export default async function DeliveryLayout({
   children
@@ -41,7 +42,7 @@ export default async function DeliveryLayout({
           </header>
 
           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin="" />
-          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossOrigin=""></script>
+          <Script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossOrigin="" />
 
           <main className="min-h-[60vh]">
             <MenuDeliveryLayoutClient 

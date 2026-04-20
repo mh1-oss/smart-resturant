@@ -77,7 +77,6 @@ export default function MenuDeliveryLayoutClient({
       (position) => {
         const { latitude, longitude } = position.coords;
         const locUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        console.log("Captured Location:", locUrl);
         setFormData(prev => ({ ...prev, locationUrl: locUrl }));
         localStorage.setItem("delivery_locationUrl", locUrl);
         setIsLocating(false);
@@ -181,13 +180,11 @@ export default function MenuDeliveryLayoutClient({
 
   return (
     <>
-      <div className="min-h-screen bg-[#f8fafc]">
-      <div className="min-h-screen bg-[#f8fafc] pb-32">
+      <div className="min-h-screen bg-[#f8fafc] pb-24">
         {children}
       </div>
-      </div>
 
-      <div className="fixed inset-x-4 bottom-[92px] z-[100] flex items-center justify-between pointer-events-none">
+      <div className="fixed inset-x-4 bottom-[96px] z-[100] flex items-center justify-between pointer-events-none">
         <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="pointer-events-auto">
           <button
             onClick={() => setShowOrdersPanel(true)}
@@ -425,24 +422,43 @@ export default function MenuDeliveryLayoutClient({
         )}
       </AnimatePresence>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200/60 bg-white/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-3xl items-stretch h-16">
-          {[
-            { href: `/menu/delivery`, label: "الرئيسية", icon: House },
-            { href: `/menu/delivery/offers`, label: "العروض", icon: Star }
-          ].map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link key={item.label} href={item.href} className={cn(
-                "flex-1 flex flex-col items-center justify-center transition-all",
-                isActive ? "text-slate-900" : "text-slate-400"
-              )}>
-                <Icon size={20} className={isActive ? "stroke-[2.5]" : "stroke-2"} />
-                <span className="text-[10px] font-black mt-1">{item.label}</span>
-              </Link>
-            );
-          })}
+      <nav className="fixed inset-x-6 bottom-6 z-50 overflow-hidden animate-entrance">
+        <div className="mx-auto max-w-3xl glass-morphism rounded-[32px] p-2 shadow-2xl shadow-slate-900/5 border-white/50">
+          <div className="flex items-stretch h-14 relative">
+            {[
+              { href: `/menu/delivery`, label: "الرئيسية", icon: House },
+              { href: `/menu/delivery/offers`, label: "العروض", icon: Star }
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link 
+                  key={item.label} 
+                  href={item.href} 
+                  className={cn(
+                    "relative flex-1 flex items-center justify-center gap-3 transition-all duration-500",
+                    isActive ? "text-white" : "text-slate-500 hover:text-slate-700"
+                  )}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="delivery-nav-pill"
+                      className="absolute inset-0 bg-black rounded-2xl z-0 shadow-lg shadow-black/20"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  <motion.div
+                    animate={isActive ? { scale: 1.1 } : { scale: 1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="flex items-center gap-2 relative z-10"
+                  >
+                    <Icon size={18} className={isActive ? "stroke-[2.5]" : "stroke-2"} />
+                    <span className="text-xs font-black">{item.label}</span>
+                  </motion.div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </nav>
     </>

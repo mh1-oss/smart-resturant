@@ -114,20 +114,22 @@ export default function SettingsForm({ initialSettings }: { initialSettings: any
                           </div>
                           {field.isTextArea ? (
                              <textarea 
-                               name={field.name}
-                               defaultValue={field.defaultValue}
-                               className="w-full h-32 rounded-2xl bg-slate-50 border border-slate-100 p-6 font-bold text-slate-700 outline-none ring-2 ring-transparent focus:ring-slate-900 transition-all resize-none"
-                               placeholder="..."
-                               required
+                                id={field.name}
+                                name={field.name}
+                                defaultValue={field.defaultValue}
+                                className="w-full h-32 rounded-2xl bg-slate-50 border border-slate-100 p-6 font-bold text-slate-700 outline-none ring-2 ring-transparent focus:ring-slate-900 transition-all resize-none"
+                                placeholder="..."
+                                required
                              />
                           ) : (
                              <input 
-                               name={field.name}
-                               type={field.type || "text"}
-                               defaultValue={field.defaultValue}
-                               className="w-full h-16 rounded-2xl bg-slate-50 pr-14 pl-6 font-bold text-slate-700 border border-slate-100 outline-none ring-2 ring-transparent focus:ring-slate-900 transition-all"
-                               placeholder="..."
-                               required
+                                id={field.name}
+                                name={field.name}
+                                type={field.type || "text"}
+                                defaultValue={field.defaultValue}
+                                className="w-full h-16 rounded-2xl bg-slate-50 pr-14 pl-6 font-bold text-slate-700 border border-slate-100 outline-none ring-2 ring-transparent focus:ring-slate-900 transition-all"
+                                placeholder="..."
+                                required
                              />
                           )}
                        </div>

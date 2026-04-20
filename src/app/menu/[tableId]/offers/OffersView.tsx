@@ -1,25 +1,23 @@
 "use client";
 
 import { Star, ShoppingBasket, Tag, Plus } from "lucide-react";
-import { motion } from "framer-motion";
 import { formatCurrency, cn } from "@/lib/utils";
 import { useCart } from "@/context/CartContext";
+import { motion } from "framer-motion";
 
 export default function OffersView({ offers, currency }: { offers: any[], currency: string }) {
   const { addToCart } = useCart();
 
   if (offers.length === 0) {
     return (
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-white rounded-[40px] border border-dashed border-slate-200"
+      <div 
+        className="animate-entrance flex flex-col items-center justify-center py-20 text-center space-y-4 bg-white rounded-[40px] border border-dashed border-slate-200"
       >
         <div className="h-20 w-20 rounded-full bg-slate-50 flex items-center justify-center text-slate-300">
           <Star size={40} />
         </div>
         <p className="font-black text-slate-400">لا توجد عروض نشطة حالياً، تابعنا للمزيد!</p>
-      </motion.div>
+      </div>
     );
   }
 
@@ -34,38 +32,17 @@ export default function OffersView({ offers, currency }: { offers: any[], curren
     });
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
-
   return (
-    <motion.div 
-      variants={containerVariants}
-      initial="hidden"
-      animate="show"
-      className="space-y-6"
-    >
-      {offers.map((offer) => (
-        <motion.div 
+    <div className="space-y-6">
+      {offers.map((offer, index) => (
+        <div 
           key={offer.id} 
-          variants={itemVariants}
-          whileHover={{ y: -5 }}
-          className="group relative overflow-hidden bg-white rounded-[40px] p-6 shadow-xl shadow-slate-200/40 border border-slate-100 transition-all duration-300"
+          style={{ animationDelay: `${index * 0.05}s` }}
+          className="animate-entrance group relative overflow-hidden bg-white rounded-[40px] p-6 shadow-xl shadow-slate-200/40 border border-slate-100 transition-[transform,shadow,background-color] duration-300 hover:-translate-y-1"
         >
           {/* Discount Badge */}
           {offer.discount_percentage && (
-            <div className="absolute top-6 left-6 z-10 bg-rose-500 text-white px-4 py-1.5 rounded-2xl text-[10px] font-black shadow-lg shadow-rose-500/20 flex items-center gap-1 animate-pulse">
+            <div className="absolute top-6 left-6 z-10 bg-rose-500 text-white px-4 py-1.5 rounded-2xl text-[10px] font-black shadow-lg shadow-rose-500/20 flex items-center gap-1">
               <Tag size={12} fill="currentColor" />
               <span>%{offer.discount_percentage} خصم</span>
             </div>
@@ -97,7 +74,7 @@ export default function OffersView({ offers, currency }: { offers: any[], curren
                     return (
                         <div 
                           key={item.id} 
-                          className="flex items-center justify-between gap-3 bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-colors group-hover:bg-slate-100/50"
+                          className="flex items-center justify-between gap-3 bg-slate-50 p-4 rounded-3xl border border-slate-100 transition-colors group-hover/card:bg-slate-100/50"
                         >
                           <div className="flex flex-col text-right">
                             <span className="text-xs font-black text-slate-700">{item.name}</span>
@@ -137,10 +114,8 @@ export default function OffersView({ offers, currency }: { offers: any[], curren
             </div>
           </div>
 
-          {/* Background Decoration */}
-          <div className="absolute -bottom-12 -right-12 h-64 w-64 rounded-full bg-slate-50 opacity-50 blur-3xl group-hover:bg-amber-50 group-hover:opacity-80 transition-all duration-500" />
-        </motion.div>
+        </div>
       ))}
-    </motion.div>
+    </div>
   );
 }

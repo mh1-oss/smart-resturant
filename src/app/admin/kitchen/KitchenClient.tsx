@@ -9,6 +9,11 @@ import { playNotificationSound } from "@/lib/audio";
 export default function KitchenClient({ initialOrders, restaurantName }: { initialOrders: any[], restaurantName: string }) {
   const [orders, setOrders] = useState(initialOrders);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Poll for new orders every 10 seconds
   useEffect(() => {
@@ -183,7 +188,9 @@ export default function KitchenClient({ initialOrders, restaurantName }: { initi
                   <Timer className="h-3.5 w-3.5" />
                   <span>{new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
                   <span className="mx-1">•</span>
-                  <span>منذ {Math.floor((new Date().getTime() - new Date(order.created_at).getTime()) / 60000)} دقيقة</span>
+                  {isMounted && (
+                    <span>منذ {Math.floor((new Date().getTime() - new Date(order.created_at).getTime()) / 60000)} دقيقة</span>
+                  )}
                 </div>
               </div>
             </div>
