@@ -216,6 +216,7 @@ export default function MenuLayoutClient({
                 <Link 
                   key={item.label} 
                   href={item.href} 
+                  prefetch={true}
                   className={cn(
                     "relative flex-1 flex items-center justify-center gap-3 transition-all duration-500",
                     isActive ? "text-white" : "text-slate-500 hover:text-slate-700"
