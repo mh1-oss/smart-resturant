@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, startTransition } from "react";
 import { useCart } from "@/context/CartContext";
 import { Search, Plus, ShoppingBag } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -66,9 +66,9 @@ export default function MenuClient({
 
           <div className="no-scrollbar flex items-center gap-6 overflow-x-auto pb-1">
             <button
-              onClick={() => setActiveCategory(null)}
+              onClick={() => startTransition(() => setActiveCategory(null))}
               className={cn(
-                "relative whitespace-nowrap pb-2 text-sm font-black transition-all",
+                "relative whitespace-nowrap pb-2 text-sm font-black transition-colors duration-200",
                 activeCategory === null
                   ? "text-[var(--brand-primary)]"
                   : "text-slate-400 hover:text-slate-600"
@@ -80,6 +80,7 @@ export default function MenuClient({
                    layoutId="category-underline"
                    className="absolute bottom-0 inset-x-0 h-0.5 rounded-full"
                    style={{ backgroundColor: 'var(--brand-primary)' }}
+                   transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
               )}
             </button>
@@ -87,9 +88,9 @@ export default function MenuClient({
             {initialCategories.map((category) => (
               <button
                 key={category.id}
-                onClick={() => setActiveCategory(category.id)}
+                onClick={() => startTransition(() => setActiveCategory(category.id))}
                 className={cn(
-                  "relative whitespace-nowrap pb-2 text-sm font-black transition-all",
+                  "relative whitespace-nowrap pb-2 text-sm font-black transition-colors duration-200",
                   activeCategory === category.id
                     ? "text-[var(--brand-primary)]"
                     : "text-slate-400 hover:text-slate-600"
@@ -101,6 +102,7 @@ export default function MenuClient({
                     layoutId="category-underline"
                     className="absolute bottom-0 inset-x-0 h-0.5 rounded-full"
                     style={{ backgroundColor: 'var(--brand-primary)' }}
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />
                 )}
               </button>

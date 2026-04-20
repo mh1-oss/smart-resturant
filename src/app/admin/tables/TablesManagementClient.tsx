@@ -209,9 +209,7 @@ export default function TablesManagementClient({ initialTables }: { initialTable
               <div className="absolute top-0 inset-x-0 h-1.5 origin-right scale-x-0 group-hover:scale-x-100 transition-transform duration-500" style={{ backgroundColor: 'var(--brand-primary)' }} />
               
               <div className="mb-10 flex items-start justify-between relative z-10">
-                <div className="flex h-20 w-20 items-center justify-center rounded-[2.5rem] bg-slate-50 text-slate-900 ring-4 ring-white shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 group-hover:text-white"
-                     style={{"--tw-group-hover-bg": "var(--brand-primary)"} as any}
-                >
+                <div className="flex h-20 w-20 items-center justify-center rounded-[2.5rem] bg-slate-50 text-slate-900 ring-4 ring-white shadow-inner transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 group-hover:bg-slate-100 group-hover:text-[var(--brand-primary)]">
                   <span className="text-4xl font-black">{table.table_number}</span>
                 </div>
                 
