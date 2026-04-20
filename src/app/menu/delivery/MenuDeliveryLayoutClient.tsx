@@ -180,11 +180,11 @@ export default function MenuDeliveryLayoutClient({
 
   return (
     <>
-      <div className="min-h-screen bg-[#f8fafc] pb-24">
+      <div className="min-h-screen bg-[#f8fafc] pb-40">
         {children}
       </div>
 
-      <div className="fixed inset-x-4 bottom-[96px] z-[100] flex items-center justify-between pointer-events-none">
+      <div className="fixed inset-x-4 bottom-[124px] z-[100] flex items-center justify-between pointer-events-none">
         <motion.div initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="pointer-events-auto">
           <button
             onClick={() => setShowOrdersPanel(true)}
