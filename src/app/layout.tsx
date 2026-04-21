@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Outfit, Inter } from "next/font/google";
 import "./globals.css";
-import SessionProvider from "@/components/providers/SessionProvider";
-import { CartProvider } from "@/context/CartContext";
+import ClientProviders from "@/components/providers/ClientProviders";
 import DynamicTheme from "@/components/DynamicTheme";
 
 const outfit = Outfit({
@@ -36,11 +35,9 @@ export default function RootLayout({
         <DynamicTheme />
       </head>
       <body className={`${outfit.variable} ${inter.variable} font-sans antialiased`}>
-        <SessionProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
-        </SessionProvider>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );

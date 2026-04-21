@@ -49,28 +49,28 @@ export default function MenuClient({
   return (
     <div>
       {/* Search & Categories Bar */}
-      <div className="sticky top-[72px] z-30 w-full bg-white border-b border-slate-100">
-        <div className="mx-auto max-w-3xl px-6 py-4 space-y-4">
-          <div className="relative">
-            <Search className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <div className="sticky top-[80px] z-30 w-full bg-white/95 backdrop-blur-xl border-b border-white/50 shadow-sm transition-all duration-300">
+        <div className="mx-auto max-w-3xl px-6 py-5 space-y-5">
+          <div className="relative group">
+            <Search className="absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 group-focus-within:text-[var(--brand-primary)] transition-colors" />
             <input
               id="menu-search"
               name="search"
               type="text"
-              placeholder="ابحث عن وجبتك..."
+              placeholder="ابحث عن وجبتك المفضلة..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-xl border-none bg-slate-100/50 px-12 py-3 text-sm font-bold outline-none ring-1 ring-slate-200/30 focus:ring-slate-900/10 transition-all text-right"
+              className="w-full rounded-2xl border-none bg-slate-50/50 px-12 py-3.5 text-sm font-black outline-none ring-1 ring-slate-200/50 focus:ring-slate-900/10 focus:bg-white transition-all shadow-inner text-right placeholder:text-slate-300"
             />
           </div>
 
-          <div className="no-scrollbar flex items-center gap-6 overflow-x-auto pb-1">
+          <div className="no-scrollbar flex items-center gap-7 overflow-x-auto pb-1 scroll-smooth">
             <button
               onClick={() => startTransition(() => setActiveCategory(null))}
               className={cn(
-                "relative whitespace-nowrap pb-2 text-sm font-black transition-colors duration-200",
+                "relative whitespace-nowrap pb-2 text-[13px] font-black tracking-wide transition-all duration-300",
                 activeCategory === null
-                  ? "text-[var(--brand-primary)]"
+                  ? "text-slate-900 scale-105"
                   : "text-slate-400 hover:text-slate-600"
               )}
             >
@@ -78,7 +78,7 @@ export default function MenuClient({
               {activeCategory === null && (
                 <motion.div 
                    layoutId="category-underline"
-                   className="absolute bottom-0 inset-x-0 h-0.5 rounded-full"
+                   className="absolute bottom-0 inset-x-0 h-1 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
                    style={{ backgroundColor: 'var(--brand-primary)' }}
                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
@@ -90,9 +90,9 @@ export default function MenuClient({
                 key={category.id}
                 onClick={() => startTransition(() => setActiveCategory(category.id))}
                 className={cn(
-                  "relative whitespace-nowrap pb-2 text-sm font-black transition-colors duration-200",
+                  "relative whitespace-nowrap pb-2 text-[13px] font-black tracking-wide transition-all duration-300",
                   activeCategory === category.id
-                    ? "text-[var(--brand-primary)]"
+                    ? "text-slate-900 scale-105"
                     : "text-slate-400 hover:text-slate-600"
                 )}
               >
@@ -100,7 +100,7 @@ export default function MenuClient({
                 {activeCategory === category.id && (
                   <motion.div 
                     layoutId="category-underline"
-                    className="absolute bottom-0 inset-x-0 h-0.5 rounded-full"
+                    className="absolute bottom-0 inset-x-0 h-1 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.1)]"
                     style={{ backgroundColor: 'var(--brand-primary)' }}
                     transition={{ type: "spring", stiffness: 500, damping: 35 }}
                   />

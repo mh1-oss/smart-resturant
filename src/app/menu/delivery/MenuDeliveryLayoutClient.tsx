@@ -248,8 +248,21 @@ export default function MenuDeliveryLayoutClient({
       <AnimatePresence>
         {showCartPanel && (
            <div key="cart-panel" className="fixed inset-0 z-[200]">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowCartPanel(false)} className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 40%, transparent)' }} />
-             <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="absolute inset-x-0 bottom-0 max-h-[85vh] rounded-t-[32px] bg-white p-6 shadow-2xl flex flex-col">
+             <motion.div 
+               initial={{ opacity: 0 }} 
+               animate={{ opacity: 1 }} 
+               exit={{ opacity: 0 }} 
+               onClick={() => setShowCartPanel(false)} 
+               className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+             />
+             <motion.div 
+               initial={{ y: "100%" }} 
+               animate={{ y: 0 }} 
+               exit={{ y: "100%" }} 
+               transition={{ type: "spring", damping: 28, stiffness: 220, mass: 0.6 }}
+               style={{ willChange: "transform" }}
+               className="absolute inset-x-0 bottom-0 max-h-[90vh] rounded-t-[32px] bg-white p-6 shadow-2xl flex flex-col"
+             >
                <div className="mb-6 flex items-center justify-between">
                  <h2 className="text-xl font-black text-slate-900">سلة طلباتك</h2>
                  <button onClick={() => setShowCartPanel(false)} className="rounded-full bg-slate-100 p-2"><X size={20} /></button>
