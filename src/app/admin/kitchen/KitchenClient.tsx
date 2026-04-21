@@ -140,15 +140,15 @@ export default function KitchenClient({ initialOrders, restaurantName }: { initi
         <div 
           key={order.id} 
           className={cn(
-            "premium-card flex flex-col p-8 group animate-scale-in",
+            "relative premium-card flex flex-col p-8 group animate-scale-in",
             order.status === "Pending" ? "ring-4 ring-amber-400/20 border-amber-200" : "border-slate-100"
           )}
         >
-          {/* Status Badge - Floating */}
-          <div className="absolute -top-3 -left-3 z-10">
+          {/* Status Badge */}
+          <div className="absolute top-4 left-4 z-10">
             <div className={cn(
                 "px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-lg",
-                order.status === "Pending" ? "style={{ background: 'var(--brand-accent)' }} text-white animate-pulse" : 
+                order.status === "Pending" ? "bg-[var(--brand-accent)] text-white animate-pulse" : 
                 order.status === "Preparing" ? "bg-rose-500 text-white" : "bg-emerald-500 text-white"
             )}>
                 {order.status === "Pending" ? "بانتظار التأكيد" : 

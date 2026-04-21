@@ -9,15 +9,19 @@ import {
   ShoppingBag, 
   X, 
   CheckCircle2,
-  UtensilsCrossed
+  UtensilsCrossed,
+  CreditCard,
+  ReceiptText,
+  AlertCircle
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn, formatCurrency } from "@/lib/utils";
-import { createOrder } from "@/app/actions/order";
+import { createOrder, requestBill } from "@/app/actions/order";
 import { useCart } from "@/context/CartContext";
 import { useOrder } from "@/context/OrderContext";
+import { useEffect } from "react";
 
 export default function MenuLayoutClient({ 
   children,
@@ -36,8 +40,56 @@ export default function MenuLayoutClient({
   
   const [showCartPanel, setShowCartPanel] = useState(false);
   const [showOrdersPanel, setShowOrdersPanel] = useState(false);
+  const [showBillPanel, setShowBillPanel] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [billError, setBillError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleOpenBill = () => {
+      setShowBillPanel(true);
+      setShowCartPanel(false);
+      setShowOrdersPanel(false);
+    };
+    window.addEventListener("OPEN_BILL_MODAL", handleOpenBill);
+    return () => window.removeEventListener("OPEN_BILL_MODAL", handleOpenBill);
+  }, []);
+
+  useEffect(() => {
+    if (showCartPanel || showOrdersPanel || showBillPanel) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showCartPanel, showOrdersPanel, showBillPanel]);
+
+  const handleRequestBill = async () => {
+    setIsSubmitting(true);
+    setBillError(null);
+    try {
+      const result = await requestBill(tableId);
+      if (result.success) {
+        setIsSuccess(true);
+        refreshOrders();
+      } else {
+        setBillError(result.error || "فشل في طلب الحساب");
+      }
+    } catch (err) {
+      setBillError("حدث خطأ غير متوقع");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const calculateGrandTotal = () => {
+    const ordersTotal = customerOrders.reduce((sum, order) => {
+        return sum + order.items.reduce((oSum: number, item: any) => oSum + (Number(item.price_at_time) * item.quantity), 0);
+    }, 0);
+    return ordersTotal * (1 + (Number(taxRate) / 100));
+  };
 
   const handleConfirmOrder = async () => {
     if (cart.length === 0) return;
@@ -175,32 +227,116 @@ export default function MenuLayoutClient({
                  <button onClick={() => setShowOrdersPanel(false)} className="rounded-full bg-slate-100 p-2"><X size={20} /></button>
                </div>
                <div className="flex-1 overflow-y-auto space-y-4 no-scrollbar">
-                 {customerOrders.map((order) => (
-                   <div key={order.id} className="rounded-2xl border border-slate-100 bg-white p-4">
-                     <div className="flex items-center justify-between mb-3">
-                       <span className="text-xs font-bold text-slate-400">{new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
-                       <span className={cn(
-                         "px-3 py-1 rounded-lg text-[10px] font-black uppercase",
-                         order.status === "Pending" ? "bg-[var(--brand-accent)] text-white" : 
-                         ["Served", "Ready"].includes(order.status) ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600"
-                       )}>
-                         {order.status === "Pending" ? "بانتظار التأكيد" : order.status === "Preparing" ? "قيد التحضير" : order.status === "Ready" ? "جاهز!" : "تم التقديم"}
-                       </span>
+                 {customerOrders.length > 0 ? (
+                   customerOrders.map((order) => (
+                     <div key={order.id} className="rounded-2xl border border-slate-100 bg-white p-4">
+                       <div className="flex items-center justify-between mb-3">
+                         <span className="text-xs font-bold text-slate-400">{new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
+                         <span className={cn(
+                           "px-3 py-1 rounded-lg text-[10px] font-black uppercase",
+                           order.status === "Pending" ? "bg-[var(--brand-accent)] text-white" : 
+                           ["Served", "Ready"].includes(order.status) ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600"
+                         )}>
+                           {order.status === "Pending" ? "بانتظار التأكيد" : order.status === "Preparing" ? "قيد التحضير" : order.status === "Ready" ? "جاهز!" : "تم التقديم"}
+                         </span>
+                       </div>
+                       <div className="space-y-1">
+                          {order.items.map((item: any) => (
+                            <div key={item.id} className="flex justify-between text-xs font-bold text-slate-600">
+                              <span>{item.item_name} x{item.quantity}</span>
+                              <span>{formatCurrency(item.price_at_time * item.quantity, currency)}</span>
+                            </div>
+                          ))}
+                       </div>
                      </div>
-                     <div className="space-y-1">
-                        {order.items.map((item: any) => (
-                          <div key={item.id} className="flex justify-between text-xs font-bold text-slate-600">
-                            <span>{item.item_name} x{item.quantity}</span>
-                            <span>{formatCurrency(item.price_at_time * item.quantity, currency)}</span>
-                          </div>
-                        ))}
-                     </div>
-                   </div>
-                 ))}
+                   ))
+                 ) : (
+                    <div className="py-24 text-center space-y-6 flex flex-col items-center justify-center">
+                      <div className="h-24 w-24 rounded-full bg-slate-50 flex items-center justify-center text-slate-200">
+                        <UtensilsCrossed size={48} />
+                      </div>
+                      <div className="space-y-2">
+                        <h3 className="text-xl font-black text-slate-900">لا توجد طلبات حالياً</h3>
+                        <p className="text-sm font-bold text-slate-400 max-w-[200px] mx-auto">ابدأ بإضافة وجباتك المفضلة للسلة واطلبها الآن</p>
+                      </div>
+                    </div>
+                 )}
                </div>
              </motion.div>
            </div>
         )}
+         {showBillPanel && (
+           <div key="bill-panel" className="fixed inset-0 z-[200]">
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { if(!isSubmitting) setShowBillPanel(false); setIsSuccess(false); setBillError(null); }} className="absolute inset-0" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 60%, transparent)' }} />
+             <motion.div initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }} className="absolute inset-x-0 bottom-0 max-h-[85vh] rounded-t-[32px] bg-white p-6 shadow-2xl flex flex-col">
+               <div className="mb-6 flex items-center justify-between">
+                 <h2 className="text-xl font-black text-slate-900">طلب الحساب</h2>
+                 <button onClick={() => { setShowBillPanel(false); setIsSuccess(false); setBillError(null); }} className="rounded-full bg-slate-100 p-2"><X size={20} /></button>
+               </div>
+
+               <div className="flex-1 overflow-y-auto space-y-4 no-scrollbar">
+                 {isSuccess ? (
+                    <div className="py-20 text-center space-y-4">
+                      <div className="h-20 w-20 mx-auto rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center animate-bounce"><ReceiptText size={48} /></div>
+                      <h3 className="text-xl font-black text-slate-900">تم طلب الحساب بنجاح!</h3>
+                      <p className="text-sm font-bold text-slate-400">سيصلك الموظف قريباً لتسليم الوصل</p>
+                    </div>
+                 ) : (
+                    <>
+                      <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 flex flex-col items-center text-center">
+                        <div className="h-16 w-16 rounded-2xl flex items-center justify-center text-white mb-4 shadow-lg shadow-slate-200" style={{ backgroundColor: 'var(--brand-primary)' }}>
+                          <CreditCard size={32} />
+                        </div>
+                        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mb-1">المبلغ الإجمالي المستحق</p>
+                        <h3 className="text-4xl font-black text-slate-900">{formatCurrency(calculateGrandTotal(), currency)}</h3>
+                        <p className="text-[10px] text-slate-400 mt-2 font-bold">شامل الضريبة ({taxRate}%)</p>
+                      </div>
+
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-black text-slate-900 px-2 flex items-center gap-2">
+                           <ReceiptText size={16} className="text-slate-400" />
+                           تفاصيل الطلبات
+                        </h4>
+                        <div className="space-y-2">
+                          {customerOrders.map((order) => (
+                            <div key={order.id} className="rounded-2xl border border-slate-50 bg-white p-3">
+                               {order.items.map((item: any) => (
+                                 <div key={item.id} className="flex justify-between items-center py-1">
+                                    <span className="text-xs font-bold text-slate-600">{item.item_name} <span className="text-slate-400 text-[10px]">x{item.quantity}</span></span>
+                                    <span className="text-xs font-black text-slate-900">{formatCurrency(item.price_at_time * item.quantity, currency)}</span>
+                                 </div>
+                               ))}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {billError && (
+                        <div className="bg-rose-50 border border-rose-100 p-4 rounded-2xl flex items-center gap-3 text-rose-600 animate-shake">
+                           <AlertCircle size={20} className="shrink-0" />
+                           <p className="text-xs font-black leading-relaxed">{billError}</p>
+                        </div>
+                      )}
+                    </>
+                 )}
+               </div>
+
+               {!isSuccess && (
+                 <div className="mt-6 pt-6 border-t border-slate-100 pb-2">
+                   <button 
+                    onClick={handleRequestBill} 
+                    disabled={isSubmitting || customerOrders.length === 0}
+                    className="w-full h-16 text-white rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform flex items-center justify-center gap-3 disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--brand-primary)' }}
+                   >
+                     {isSubmitting ? "جاري الإرسال..." : "تأكيد طلب الفاتورة"}
+                     <CheckCircle2 size={20} />
+                   </button>
+                 </div>
+               )}
+             </motion.div>
+           </div>
+         )}
       </AnimatePresence>
 
       <nav className="fixed inset-x-6 bottom-6 z-50 overflow-hidden animate-entrance">

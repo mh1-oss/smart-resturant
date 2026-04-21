@@ -14,7 +14,8 @@ import {
   MapPin,
   Navigation,
   User,
-  Zap
+  Zap,
+  Trash2
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
@@ -57,6 +58,8 @@ export default function MenuDeliveryLayoutClient({
 
   const [formData, setFormData] = useState({ name: "", phone: "", address: "", locationUrl: "" });
 
+  const [hiddenOrderIds, setHiddenOrderIds] = useState<number[]>([]);
+
   useEffect(() => {
     setFormData({
       name: localStorage.getItem("delivery_name") || "",
@@ -64,7 +67,29 @@ export default function MenuDeliveryLayoutClient({
       address: localStorage.getItem("delivery_address") || "",
       locationUrl: localStorage.getItem("delivery_locationUrl") || ""
     });
+
+    const savedHidden = localStorage.getItem("hidden_delivery_orders");
+    if (savedHidden) {
+      setHiddenOrderIds(JSON.parse(savedHidden));
+    }
   }, []);
+
+  const handleHideOrder = (id: number) => {
+    const updated = [...hiddenOrderIds, id];
+    setHiddenOrderIds(updated);
+    localStorage.setItem("hidden_delivery_orders", JSON.stringify(updated));
+  };
+
+  useEffect(() => {
+    if (showCartPanel || showOrdersPanel || showCheckoutModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showCartPanel, showOrdersPanel, showCheckoutModal]);
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -364,61 +389,106 @@ export default function MenuDeliveryLayoutClient({
                  <button onClick={() => setShowOrdersPanel(false)} className="rounded-full bg-slate-100 p-2"><X size={20} /></button>
                </div>
                <div className="flex-1 overflow-y-auto space-y-4 no-scrollbar">
-                 {customerOrders.map((order) => (
-                   <div key={order.id} className="rounded-2xl border border-slate-100 bg-white p-4">
-                     <div className="flex items-center justify-between mb-3">
-                       <span className="text-xs font-bold text-slate-400">{new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
-                        <span className={cn(
-                          "px-3 py-1 rounded-lg text-[10px] font-black uppercase",
-                          order.status === "Pending" ? "bg-[var(--brand-accent)] text-white" : 
-                          order.status === "Ready" ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600"
-                        )}>
-                          {order.status === "Pending" ? "بانتظار التأكيد" : order.status === "Preparing" ? "قيد التحضير" : order.status === "Ready" ? "بالطريق" : "تم التوصيل"}
-                        </span>
-                     </div>
-                     <div className="space-y-1">
-                        {order.items.map((item: any) => (
-                          <div key={item.id} className="flex justify-between text-xs font-bold text-slate-600">
-                            <span>{item.item_name} x{item.quantity}</span>
-                            <span>{formatCurrency(item.price_at_time * item.quantity, currency)}</span>
-                          </div>
-                        ))}
-                     </div>
+                 {(() => {
+                    const activeOrders = customerOrders.filter(o => o.status !== "Delivered");
+                    const deliveredOrders = customerOrders
+                      .filter(o => o.status === "Delivered" && !hiddenOrderIds.includes(o.id))
+                      .slice(0, 10);
+                    
+                    const displayedOrders = [...activeOrders, ...deliveredOrders];
 
-                     {order.driver && (
-                        <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
-                          <div className="flex items-center gap-3 text-right">
-                            <div className="h-10 w-10 rounded-full text-white flex items-center justify-center text-xs font-black" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                              {order.driver.name?.[0] || <User size={14} />}
-                            </div>
-                            <div>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider leading-none mb-1">السائق</p>
-                              <p className="text-sm font-black text-slate-900 leading-none">{order.driver.name}</p>
-                            </div>
+                    if (displayedOrders.length === 0) {
+                      return (
+                        <div className="py-24 text-center space-y-6 flex flex-col items-center justify-center">
+                          <div className="h-24 w-24 rounded-full bg-slate-50 flex items-center justify-center text-slate-200">
+                            <Truck size={48} />
                           </div>
-                          <div className="flex items-center gap-2">
-                             <a 
-                               href={`tel:${order.driver.phone}`} 
-                               className="h-10 w-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center active:scale-95 transition-transform"
-                               title="اتصال هاتف"
-                             >
-                                <Phone size={16} />
-                             </a>
-                             {order.driver.phone && (
-                               <a 
-                                 href={`https://wa.me/${order.driver.phone.replace(/\s+/g, '')}`} 
-                                 target="_blank"
-                                 className="h-10 px-4 rounded-xl bg-emerald-50 text-emerald-700 text-[10px] font-black flex items-center gap-2 active:scale-95 transition-transform"
-                                 title="مراسلة واتساب"
-                               >
-                                  واتساب
-                               </a>
-                             )}
+                          <div className="space-y-2">
+                            <h3 className="text-xl font-black text-slate-900">لا توجد طلبات حالياً</h3>
+                            <p className="text-sm font-bold text-slate-400 max-w-[200px] mx-auto">ابدأ بطلب وجباتك المفضلة لتظهر هنا</p>
                           </div>
                         </div>
-                      )}
-                   </div>
-                 ))}
+                      );
+                    }
+
+                    return (
+                      <>
+                        {displayedOrders.map((order) => (
+                          <div key={order.id} className="rounded-2xl border border-slate-100 bg-white p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-xs font-bold text-slate-400">{new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
+                              <div className="flex items-center gap-2">
+                                {order.status === "Delivered" && (
+                                  <button 
+                                    onClick={() => handleHideOrder(order.id)}
+                                    className="p-1.5 text-slate-300 hover:text-rose-500 transition-colors"
+                                    title="حذف من السجل"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                )}
+                                <span className={cn(
+                                  "px-3 py-1 rounded-lg text-[10px] font-black uppercase",
+                                  order.status === "Pending" ? "bg-[var(--brand-accent)] text-white" : 
+                                  order.status === "Ready" ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-600"
+                                )}>
+                                  {order.status === "Pending" ? "بانتظار التأكيد" : order.status === "Preparing" ? "قيد التحضير" : order.status === "Ready" ? "بالطريق" : "تم التوصيل"}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                                {order.items.map((item: any) => (
+                                  <div key={item.id} className="flex justify-between text-xs font-bold text-slate-600">
+                                    <span>{item.item_name} x{item.quantity}</span>
+                                    <span>{formatCurrency(item.price_at_time * item.quantity, currency)}</span>
+                                  </div>
+                                ))}
+                            </div>
+
+                            {order.driver && (
+                                <div className="mt-4 pt-4 border-t border-slate-50 flex items-center justify-between">
+                                  <div className="flex items-center gap-3 text-right">
+                                    <div className="h-10 w-10 rounded-full text-white flex items-center justify-center text-xs font-black" style={{ backgroundColor: 'var(--brand-primary)' }}>
+                                      {order.driver.name?.[0] || <User size={14} />}
+                                    </div>
+                                    <div>
+                                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider leading-none mb-1">السائق</p>
+                                      <p className="text-sm font-black text-slate-900 leading-none">{order.driver.name}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                     <a 
+                                       href={`tel:${order.driver.phone}`} 
+                                       className="h-10 w-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center active:scale-95 transition-transform"
+                                       title="اتصال هاتف"
+                                     >
+                                        <Phone size={16} />
+                                     </a>
+                                     {order.driver.phone && (
+                                       <a 
+                                         href={`https://wa.me/${order.driver.phone.replace(/\s+/g, '')}`} 
+                                         target="_blank"
+                                         className="h-10 px-4 rounded-xl bg-emerald-50 text-emerald-700 text-[10px] font-black flex items-center gap-2 active:scale-95 transition-transform"
+                                         title="مراسل واتساب"
+                                       >
+                                          واتساب
+                                       </a>
+                                     )}
+                                  </div>
+                                </div>
+                              )}
+                          </div>
+                        ))}
+                        {deliveredOrders.length > 0 && (
+                          <div className="pt-4 pb-8 text-center">
+                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest bg-slate-50 py-2 rounded-xl border border-dashed border-slate-200">
+                              يتم الاحتفاظ بآخر 10 طلبات واصلة فقط
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    );
+                 })()}
                </div>
              </motion.div>
            </div>
