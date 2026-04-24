@@ -17,11 +17,19 @@ const inter = Inter({
 import { getSettings } from "@/app/actions/settings";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getSettings();
-  return {
-    title: `${settings.restaurantName} | نظام إدارة المطعم`,
-    description: `نظام إدارة متكامل لـ ${settings.restaurantName} مع طلبات QR فورية`,
-  };
+  try {
+    const settings = await getSettings();
+    return {
+      title: `${settings.restaurantName} | نظام إدارة المطعم`,
+      description: `نظام إدارة متكامل لـ ${settings.restaurantName} مع طلبات QR فورية`,
+    };
+  } catch {
+    // Database not reachable at build time — return safe defaults
+    return {
+      title: "نظام إدارة المطعم",
+      description: "نظام إدارة متكامل مع طلبات QR فورية",
+    };
+  }
 }
 
 export default function RootLayout({

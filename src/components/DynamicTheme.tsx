@@ -1,8 +1,13 @@
 import { getSettings } from "@/app/actions/settings";
 
 export default async function DynamicTheme() {
-  // Fetch settings from database
-  const settings = await getSettings();
+  // Fetch settings from database, with safe defaults for build time
+  let settings: Record<string, string> = {};
+  try {
+    settings = await getSettings();
+  } catch {
+    // Database not reachable at build time — CSS variables will use defaults below
+  }
 
   // Extract theme values with fallbacks to default premium theme
   const primary = settings.themePrimary || "#0f172a";
