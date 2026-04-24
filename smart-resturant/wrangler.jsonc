@@ -1,7 +1,0 @@
-{
-  "name": "smart-resturant",
-  "main": "src/worker.js",
-  "workers_dev": false,
-  "preview_urls": false,
-  "compatibility_date": "2026-04-24"
-}
