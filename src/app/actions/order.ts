@@ -15,7 +15,37 @@ export async function createOrder(tableId: string | number, items: any[]) {
 
     const session = sessionResult.session;
 
-    // Create the order with fall-back for un-generated prisma client
+    // Prepare order items with proper data
+    const orderItemsData = await Promise.all(items.map(async (item) => {
+        const menuItem = await (prisma as any).menuItem.findUnique({
+            where: { id: Number(item.id) },
+            select: { cost_price: true, name: true }
+        });
+        
+        // Calculate total cost at time 
+        const variants = item.selectedVariants || [];
+        const addons = item.selectedAddOns || [];
+        
+        // Variant (size) cost replaces base cost if selected
+        const baseCost = variants.length > 0 
+           ? Number(variants[0].cost_price || 0) 
+           : Number(menuItem?.cost_price || 0);
+           
+        const addonsCost = addons.reduce((sum: number, a: any) => sum + Number(a.cost_price || 0), 0);
+        const totalCostAtTime = baseCost + addonsCost;
+        
+        return {
+            menu_item_id: Number(item.id),
+            quantity: Number(item.quantity),
+            price_at_time: Number(item.price),
+            cost_at_time: totalCostAtTime,
+            item_name: menuItem?.name || item.name || "صنف غير معروف",
+            notes: item.notes || "",
+            selected_variants: variants.length > 0 ? JSON.stringify(variants) : null,
+            selected_addons: addons.length > 0 ? JSON.stringify(addons) : null
+        };
+    }));
+
     let order;
     try {
         order = await (prisma as any).order.create({
@@ -23,40 +53,13 @@ export async function createOrder(tableId: string | number, items: any[]) {
                 session_id: session.id,
                 status: "Pending",
                 items: {
-                    create: await Promise.all(items.map(async (item) => {
-                        const menuItem = await (prisma as any).menuItem.findUnique({
-                            where: { id: item.id },
-                            select: { cost_price: true, name: true }
-                        })
-                        return {
-                            menu_item_id: item.id,
-                            quantity: item.quantity,
-                            price_at_time: item.price,
-                            cost_at_time: menuItem?.cost_price || 0,
-                            item_name: menuItem?.name || "صنف غير معروف",
-                            notes: item.notes || ""
-                        }
-                    }))
+                    create: orderItemsData
                 }
             }
         })
     } catch (prismaError: any) {
-        console.error("Primary order creation failed, trying fallback...", prismaError.message);
-        // Fallback for old prisma client that doesn't have 'item_name'
-        order = await (prisma as any).order.create({
-            data: {
-                session_id: session.id,
-                status: "Pending",
-                items: {
-                    create: items.map((item) => ({
-                        menu_item_id: item.id,
-                        quantity: item.quantity,
-                        price_at_time: item.price,
-                        notes: item.notes || ""
-                    }))
-                }
-            }
-        })
+        console.error("Primary order creation failed:", prismaError.message);
+        throw prismaError;
     }
 
     revalidatePath(`/menu/${tableId}`)
@@ -74,26 +77,39 @@ export async function createDeliveryOrder(items: any[], customerDetails: { name:
       return { success: false, error: "السلة فارغة" };
     }
 
-    // Prepare order items with proper types
+    // Prepare order items
     const orderItemsData = await Promise.all(items.map(async (item) => {
         const menuItem = await (prisma as any).menuItem.findUnique({
             where: { id: Number(item.id) },
             select: { cost_price: true, name: true }
         });
         
+        // Calculate total cost at time
+        const variants = item.selectedVariants || [];
+        const addons = item.selectedAddOns || [];
+        
+        // Variant (size) cost replaces base cost if selected
+        const baseCost = variants.length > 0 
+           ? Number(variants[0].cost_price || 0) 
+           : Number(menuItem?.cost_price || 0);
+
+        const addonsCost = addons.reduce((sum: number, a: any) => sum + Number(a.cost_price || 0), 0);
+        const totalCostAtTime = baseCost + addonsCost;
+        
         return {
             menu_item_id: Number(item.id),
             quantity: Number(item.quantity),
             price_at_time: Number(item.price),
-            cost_at_time: Number(menuItem?.cost_price || 0),
+            cost_at_time: totalCostAtTime,
             item_name: menuItem?.name || item.name || "صنف غير معروف",
-            notes: item.notes || ""
+            notes: item.notes || "",
+            selected_variants: variants.length > 0 ? JSON.stringify(variants) : null,
+            selected_addons: addons.length > 0 ? JSON.stringify(addons) : null
         };
     }));
 
     let order;
     try {
-        // Primary Attempt with all new fields
         const enhancedAddress = customerDetails.locationUrl 
             ? `${customerDetails.address}\n(الموقع الجغرافي: ${customerDetails.locationUrl})`
             : customerDetails.address;
@@ -112,31 +128,8 @@ export async function createDeliveryOrder(items: any[], customerDetails: { name:
             }
         });
     } catch (prismaError: any) {
-        console.error("Primary creation failed, trying extreme fallback with notes append...", prismaError.message);
-        
-        // Final fallback: also append location URL to address as a safety measure
-        const safeAddress = customerDetails.locationUrl 
-            ? `${customerDetails.address} \n(الموقع: ${customerDetails.locationUrl})`
-            : customerDetails.address;
-
-        order = await (prisma as any).order.create({
-            data: {
-                type: "Delivery",
-                status: "Pending",
-                customer_name: customerDetails.name,
-                customer_phone: customerDetails.phone,
-                customer_address: safeAddress,
-                items: {
-                    create: items.map(item => ({
-                        menu_item_id: Number(item.id),
-                        quantity: Number(item.quantity),
-                        price_at_time: Number(item.price),
-                        item_name: item.name || "صنف غير معروف",
-                        notes: item.notes || ""
-                    }))
-                }
-            }
-        });
+        console.error("Order creation failed:", prismaError.message);
+        throw prismaError;
     }
 
     revalidatePath("/admin/kitchen");

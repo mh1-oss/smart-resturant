@@ -190,18 +190,37 @@ export default function MenuLayoutClient({
                     </div>
                  ) : cart.length > 0 ? (
                    cart.map((item) => (
-                     <div key={item.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
-                       <div className="h-14 w-14 rounded-xl overflow-hidden shrink-0 bg-slate-200">
+                     <div key={item.cartId} className="flex items-start gap-3 rounded-2xl bg-slate-50 p-3">
+                       <div className="h-14 w-14 rounded-xl overflow-hidden shrink-0 bg-slate-200 mt-0.5">
                           <img src={item.image_url || "/placeholder-menu.jpg"} alt={item.name} className="h-full w-full object-cover" />
                        </div>
                        <div className="flex-1 text-right">
-                         <h4 className="text-sm font-black text-slate-900">{item.name}</h4>
-                         <p className="text-xs font-bold text-slate-500">{formatCurrency(item.price, currency)}</p>
+                         <h4 className="text-sm font-black text-slate-900 leading-tight">{item.name}</h4>
+                         
+                         {(item.selectedVariants?.length ?? 0) > 0 && (
+                            <p className="text-[10px] font-black text-slate-500 mt-1.5 flex items-center gap-1">
+                              <span className="w-1 h-1 rounded-full bg-slate-300" />
+                              {item.selectedVariants?.map(v => v.name).join(' ، ')}
+                            </p>
+                          )}
+                          {(item.selectedAddOns?.length ?? 0) > 0 && (
+                            <p className="text-[10px] font-black text-emerald-600 mt-0.5 flex items-center gap-1">
+                              <span className="text-emerald-400 font-black">+</span>
+                              {item.selectedAddOns?.map(a => a.name).join(' ، ')}
+                            </p>
+                          )}
+                         {item.notes && (
+                           <p className="text-[10px] italic text-slate-400">
+                             "{item.notes}"
+                           </p>
+                         )}
+                         
+                         <p className="text-xs font-black text-[var(--brand-primary)] mt-1">{formatCurrency(item.price, currency)}</p>
                        </div>
-                       <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-sm">
-                         <button onClick={() => updateQuantity(item.id, -1)} className="p-1 text-slate-400"><Minus size={14} /></button>
+                       <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-sm shrink-0">
+                         <button onClick={() => updateQuantity(item.cartId, -1)} className="p-1 text-slate-400 hover:text-rose-500 transition-colors"><Minus size={14} /></button>
                          <span className="text-sm font-black w-4 text-center">{item.quantity}</span>
-                         <button onClick={() => updateQuantity(item.id, 1)} className="p-1 text-slate-400"><Plus size={14} /></button>
+                         <button onClick={() => updateQuantity(item.cartId, 1)} className="p-1 text-slate-400 hover:text-emerald-500 transition-colors"><Plus size={14} /></button>
                        </div>
                      </div>
                    ))
@@ -268,13 +287,33 @@ export default function MenuLayoutClient({
                            {order.status === "Pending" ? "بانتظار التأكيد" : order.status === "Preparing" ? "قيد التحضير" : order.status === "Ready" ? "جاهز!" : "تم التقديم"}
                          </span>
                        </div>
-                       <div className="space-y-1">
-                          {order.items.map((item: any) => (
-                            <div key={item.id} className="flex justify-between text-xs font-bold text-slate-600">
-                              <span>{item.item_name} x{item.quantity}</span>
-                              <span>{formatCurrency(item.price_at_time * item.quantity, currency)}</span>
-                            </div>
-                          ))}
+                       <div className="space-y-3">
+                          {order.items.map((item: any) => {
+                            const variants = item.selected_variants ? JSON.parse(item.selected_variants) : [];
+                            const addons = item.selected_addons ? JSON.parse(item.selected_addons) : [];
+                            
+                            return (
+                              <div key={item.id} className="space-y-0.5">
+                                <div className="flex justify-between text-xs font-black text-slate-700">
+                                  <span>{item.item_name} <span className="text-slate-400 font-bold">x{item.quantity}</span></span>
+                                  <span>{formatCurrency(item.price_at_time * item.quantity, currency)}</span>
+                                </div>
+                                {(variants.length > 0 || addons.length > 0) && (
+                                  <div className="pr-2 space-y-0.5 leading-none">
+                                     {variants.map((v: any) => (
+                                       <div key={v.id} className="text-[10px] font-bold text-slate-400">{v.name}</div>
+                                     ))}
+                                     {addons.map((a: any) => (
+                                       <div key={a.id} className="text-[10px] font-bold text-emerald-500">+ {a.name}</div>
+                                     ))}
+                                  </div>
+                                )}
+                                {item.notes && (
+                                  <p className="text-[10px] italic text-slate-400 pr-2">"{item.notes}"</p>
+                                )}
+                              </div>
+                            );
+                          })}
                        </div>
                      </div>
                    ))

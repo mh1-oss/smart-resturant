@@ -138,12 +138,32 @@ export default function WaiterClient({
                             </div>
                             <div className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
                         </div>
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-6 font-bold text-slate-600 text-sm leading-relaxed">
-                            {order.items.map((i: any) => (
-                                <span key={i.id} className="inline-block bg-white px-2 py-0.5 rounded-lg border border-slate-100 ml-1 mb-1">
-                                    {i.quantity}x {i.item_name || i.menuItem?.name || "صنف غير معروف"}
-                                </span>
-                            ))}
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 mb-6 font-bold text-slate-600 text-sm leading-relaxed space-y-2">
+                            {order.items.map((i: any) => {
+                                const variants = i.selected_variants ? JSON.parse(i.selected_variants) : [];
+                                const addons = i.selected_addons ? JSON.parse(i.selected_addons) : [];
+                                
+                                return (
+                                    <div key={i.id} className="bg-white px-3 py-2 rounded-xl border border-slate-100">
+                                        <div className="flex justify-between items-start">
+                                            <span className="font-black text-slate-900">{i.quantity}x {i.item_name || i.menuItem?.name || "صنف غير معروف"}</span>
+                                        </div>
+                                        {(variants.length > 0 || addons.length > 0) && (
+                                            <div className="flex flex-wrap gap-1 mt-1">
+                                                {variants.map((v: any) => (
+                                                    <span key={v.id} className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-black">{v.name}</span>
+                                                ))}
+                                                {addons.map((a: any) => (
+                                                    <span key={a.id} className="text-[10px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded font-black">+ {a.name}</span>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {i.notes && (
+                                            <p className="text-[10px] italic text-rose-500 font-black mt-1">"{i.notes}"</p>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                         {order.waiter_id === userId ? (
                              <button 
@@ -435,12 +455,30 @@ export default function WaiterClient({
                                                     {order.status === "Served" ? "تم التوصيل" : "قيد التحضير"}
                                                 </span>
                                             </div>
-                                            <div className="flex flex-wrap gap-2">
-                                                {order.items.map((i: any) => (
-                                                    <span key={i.id} className="bg-white border border-slate-100 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700">
-                                                        {i.quantity}x {i.item_name || i.menuItem?.name}
-                                                    </span>
-                                                ))}
+                                            <div className="space-y-3">
+                                                {order.items.map((i: any) => {
+                                                    const variants = i.selected_variants ? JSON.parse(i.selected_variants) : [];
+                                                    const addons = i.selected_addons ? JSON.parse(i.selected_addons) : [];
+
+                                                    return (
+                                                        <div key={i.id} className="bg-white border border-slate-100 p-3 rounded-2xl">
+                                                            <p className="text-sm font-black text-slate-900 leading-tight mb-1">{i.quantity}x {i.item_name || i.menuItem?.name}</p>
+                                                            {(variants.length > 0 || addons.length > 0) && (
+                                                                <div className="flex flex-wrap gap-1 mb-1">
+                                                                    {variants.map((v: any) => (
+                                                                        <span key={v.id} className="text-[10px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded font-bold">{v.name}</span>
+                                                                    ))}
+                                                                    {addons.map((a: any) => (
+                                                                        <span key={a.id} className="text-[10px] bg-emerald-50 text-emerald-500 px-1.5 py-0.5 rounded font-bold">+ {a.name}</span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                            {i.notes && (
+                                                                <p className="text-[10px] italic text-slate-400 font-bold">"{i.notes}"</p>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     ))}

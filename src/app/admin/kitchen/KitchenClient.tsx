@@ -42,12 +42,19 @@ export default function KitchenClient({ initialOrders, restaurantName }: { initi
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    const itemsHtml = order.items.map((item: any) => `
-      <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">
-        <span style="font-weight: bold; font-size: 16px;">${item.quantity}x ${item.item_name || item.menuItem?.name}</span>
-      </div>
-      ${item.notes ? `<div style="font-size: 14px; font-style: italic; background: #eee; padding: 5px; margin-bottom: 10px; border-radius: 4px;">⚠️ ${item.notes}</div>` : ''}
-    `).join('');
+    const itemsHtml = order.items.map((item: any) => {
+      const variants = item.selected_variants ? JSON.parse(item.selected_variants) : [];
+      const addons = item.selected_addons ? JSON.parse(item.selected_addons) : [];
+      
+      return `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 4px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;">
+          <span style="font-weight: bold; font-size: 16px;">${item.quantity}x ${item.item_name || item.menuItem?.name}</span>
+        </div>
+        ${variants.length > 0 ? `<div style="font-size: 14px; font-weight: bold; margin-bottom: 2px;">( ${variants.map((v: any) => v.name).join(' ، ')} )</div>` : ''}
+        ${addons.length > 0 ? `<div style="font-size: 14px; color: #106b4d; margin-bottom: 2px;">+ ${addons.map((a: any) => a.name).join(' ، ')}</div>` : ''}
+        ${item.notes ? `<div style="font-size: 14px; font-style: italic; background: #eee; padding: 5px; margin-bottom: 10px; border-radius: 4px;">⚠️ ${item.notes}</div>` : ''}
+      `;
+    }).join('');
 
     const customerInfo = order.type === "Delivery" 
       ? `<div style="font-size: 16px; margin-bottom: 5px;"><strong>الزبون:</strong> ${order.customer_name || 'زبون خارجي'}</div>
@@ -198,22 +205,40 @@ export default function KitchenClient({ initialOrders, restaurantName }: { initi
 
           {/* Items List */}
           <div className="flex-1 space-y-5 mb-8">
-            {order.items.map((item: any) => (
-              <div key={item.id} className="flex items-start gap-4">
-                <div className="flex-none h-8 w-8 rounded-xl text-white flex items-center justify-center font-black text-xs shadow-md" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                  {item.quantity}
+            {order.items.map((item: any) => {
+              const variants = item.selected_variants ? JSON.parse(item.selected_variants) : [];
+              const addons = item.selected_addons ? JSON.parse(item.selected_addons) : [];
+
+              return (
+                <div key={item.id} className="flex items-start gap-4">
+                  <div className="flex-none h-8 w-8 rounded-xl text-white flex items-center justify-center font-black text-xs shadow-md" style={{ backgroundColor: 'var(--brand-primary)' }}>
+                    {item.quantity}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-black text-slate-900 leading-tight text-base mb-1">{item.item_name || item.menuItem?.name || "صنف غير معروف"}</p>
+                    
+                    {/* Variants and Addons for Kitchen */}
+                    {(variants.length > 0 || addons.length > 0) && (
+                      <div className="mb-2 space-y-1">
+                        {variants.map((v: any) => (
+                          <div key={v.id} className="inline-block bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-black ml-1.5">{v.name}</div>
+                        ))}
+                        {addons.map((a: any) => (
+                          <div key={a.id} className="inline-block bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[10px] font-black ml-1.5">+ {a.name}</div>
+                        ))}
+                      </div>
+                    )}
+
+                    {item.notes && (
+                      <div className="mt-2 flex items-start gap-2 p-2.5 bg-rose-50 rounded-xl border border-rose-100">
+                          <Flame className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
+                          <p className="text-xs font-black text-rose-600 italic leading-relaxed">{item.notes}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="font-black text-slate-900 leading-tight text-base">{item.item_name || item.menuItem?.name || "صنف غير معروف"}</p>
-                  {item.notes && (
-                    <div className="mt-2 flex items-start gap-2 p-2.5 bg-rose-50 rounded-xl border border-rose-100">
-                        <Flame className="h-3.5 w-3.5 text-rose-500 shrink-0 mt-0.5" />
-                        <p className="text-xs font-black text-rose-600 italic leading-relaxed">{item.notes}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Action Buttons */}

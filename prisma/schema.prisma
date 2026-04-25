@@ -82,9 +82,35 @@ model MenuItem {
   cost_price   Decimal     @default(0)
   image_url    String
   is_available Boolean     @default(true)
+  
+  // New flags for dynamic display
+  show_variants Boolean    @default(false)
+  show_addons   Boolean    @default(false)
+  show_notes    Boolean    @default(true)
+  
   category     Category    @relation(fields: [category_id], references: [id], onDelete: Cascade)
   orderItems   OrderItem[]
   offers       Offer[]     @relation("MenuItemOffers")
+  variants     Variant[]
+  addons       AddOn[]
+}
+
+model Variant {
+  id           Int      @id @default(autoincrement())
+  menu_item_id Int
+  name         String
+  price        Decimal
+  cost_price   Decimal  @default(0)
+  menuItem     MenuItem @relation(fields: [menu_item_id], references: [id], onDelete: Cascade)
+}
+
+model AddOn {
+  id           Int      @id @default(autoincrement())
+  menu_item_id Int
+  name         String
+  price        Decimal
+  cost_price   Decimal  @default(0)
+  menuItem     MenuItem @relation(fields: [menu_item_id], references: [id], onDelete: Cascade)
 }
 
 model CustomerSession {
@@ -125,6 +151,11 @@ model OrderItem {
   price_at_time Decimal
   cost_at_time  Decimal  @default(0)
   item_name     String   @default("Unknown Item")
+  
+  // Store selected choices as JSON strings for history
+  selected_variants String? // e.g. '[{"name": "Large", "price": 5000}]'
+  selected_addons   String? // e.g. '[{"name": "Extra Cheese", "price": 1000}]'
+  
   menuItem      MenuItem? @relation(fields: [menu_item_id], references: [id], onDelete: SetNull)
   order         Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
 }

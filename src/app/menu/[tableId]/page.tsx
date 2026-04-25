@@ -3,6 +3,8 @@ import MenuClient from "./MenuClient";
 import { getSettings } from "@/app/actions/settings";
 import { getCustomerOrders, ensureActiveSession } from "@/app/actions/order";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   params: Promise<{ tableId: string }>;
 }
@@ -18,10 +20,14 @@ export default async function MenuPage({ params }: PageProps) {
   const categoriesRaw = await prisma.category.findMany({
     include: {
       menuItems: {
-        where: { is_available: true }
+        where: { is_available: true },
+        include: {
+          variants: true,
+          addons: true
+        }
       }
     },
-    orderBy: { id: 'asc' }
+    orderBy: { name: 'asc' }
   });
 
   // Fetch active offers to apply discounts
@@ -44,18 +50,22 @@ export default async function MenuPage({ params }: PageProps) {
   // Convert Decimal to Number for serialization compatibility
   const categories = categoriesRaw.map((cat: any) => ({
     ...cat,
-    menuItems: cat.menuItems.map((item: any) => {
-      const itemPrice = Number(item.price);
-      const maxDiscount = discountMap.get(item.id) || 0;
+    menuItems: [...cat.menuItems]
+      .sort((a, b) => a.name.localeCompare(b.name, 'ar'))
+      .map((item: any) => {
+        const itemPrice = Number(item.price);
+        const maxDiscount = discountMap.get(item.id) || 0;
 
-      return {
-        ...item,
-        originalPrice: itemPrice,
-        price: maxDiscount > 0 ? (itemPrice * (1 - maxDiscount / 100)) : itemPrice,
-        cost_price: Number(item.cost_price || 0),
-        discountPercentage: maxDiscount > 0 ? maxDiscount : null
-      };
-    })
+        return {
+          ...item,
+          originalPrice: itemPrice,
+          price: maxDiscount > 0 ? (itemPrice * (1 - maxDiscount / 100)) : itemPrice,
+          cost_price: Number(item.cost_price || 0),
+          discountPercentage: maxDiscount > 0 ? maxDiscount : null,
+          variants: item.variants.map((v: any) => ({ ...v, price: Number(v.price), cost_price: Number(v.cost_price) })),
+          addons: item.addons.map((a: any) => ({ ...a, price: Number(a.price), cost_price: Number(a.cost_price) }))
+        };
+      })
   }));
 
   // Fetch initial active orders for the table - MOVED TO CLIENT CONTEXT

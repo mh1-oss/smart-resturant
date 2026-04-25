@@ -16,9 +16,13 @@ import {
   Package,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
-  Zap,
-  ArrowRight
+  Settings,
+  MessageSquare,
+  Sparkles, 
+  Zap, 
+  ArrowRight,
+  Maximize2,
+  Layers
 } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import { createCategory, deleteCategory, updateCategory, createMenuItem, deleteMenuItem, updateMenuItem } from "@/app/actions/menu";
@@ -41,6 +45,31 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
   const [confirmDeleteItemId, setConfirmDeleteItemId] = useState<number | null>(null);
   
   const [loading, setLoading] = useState(false);
+  const [variants, setVariants] = useState<any[]>([]);
+  const [addons, setAddons] = useState<any[]>([]);
+  const [showVariants, setShowVariants] = useState(false);
+  const [showAddons, setShowAddons] = useState(false);
+  const [showNotes, setShowNotes] = useState(true);
+
+  // Reset states when opening/editing
+  const openItemDrawer = (item?: any) => {
+    if (item) {
+        setEditingItem(item);
+        setVariants(item.variants || []);
+        setAddons(item.addons || []);
+        setShowVariants(item.show_variants);
+        setShowAddons(item.show_addons);
+        setShowNotes(item.show_notes);
+    } else {
+        setEditingItem(null);
+        setVariants([]);
+        setAddons([]);
+        setShowVariants(false);
+        setShowAddons(false);
+        setShowNotes(true);
+    }
+    setIsItemDrawerOpen(true);
+  };
 
   const activeCategory = categories.find(c => c.id === activeTab);
   const filteredItems = activeCategory?.menuItems.filter((item: any) => 
@@ -64,17 +93,36 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
     setLoading(true);
     const formData = new FormData(e.currentTarget);
     const data = {
-      category_id: activeTab,
+      category_id: editingItem ? editingItem.category_id : activeTab,
       name: formData.get("name") as string,
       description: formData.get("description") as string,
-      price: parseFloat(formData.get("price") as string),
-      cost_price: parseFloat(formData.get("cost_price") as string) || 0,
-      image_url: formData.get("image_url") as string || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
+      price: parseFloat(formData.get("price") as string) || (editingItem?.price ? Number(editingItem.price) : 0),
+      cost_price: parseFloat(formData.get("cost_price") as string) || (editingItem?.cost_price ? Number(editingItem.cost_price) : 0),
+      image_url: (formData.get("image_url") as string) || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80",
+      show_variants: showVariants,
+      show_addons: showAddons,
+      show_notes: showNotes,
+      variants: showVariants 
+        ? variants.filter(v => v.name.trim() !== "").map(v => ({ name: v.name, price: Number(v.price) || 0, cost_price: Number(v.cost_price) || 0 })) 
+        : [],
+      addons: showAddons 
+        ? addons.filter(a => a.name.trim() !== "").map(a => ({ name: a.name, price: Number(a.price) || 0, cost_price: Number(a.cost_price) || 0 })) 
+        : []
     };
 
-    let result = editingItem ? await updateMenuItem(editingItem.id, data) : await createMenuItem(data);
-    if (result.success) window.location.reload();
-    setLoading(false);
+    try {
+        let result = editingItem ? await updateMenuItem(editingItem.id, data) : await createMenuItem(data);
+        if (result.success) {
+            window.location.reload();
+        } else {
+            alert(result.error || "خطأ غير متوقع أثناء الحفظ");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("حدث خطأ في الاتصال بالخادم");
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -117,28 +165,28 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
             <p className="text-slate-400 font-bold max-w-md leading-relaxed">تحكم بلمساتك الإبداعية، حوّل وجباتك إلى أعمال فنية بصرية تجذب الزبائن.</p>
           </div>
           
-          <div className="flex items-center gap-6">
-             <div className="hidden sm:flex items-center gap-4 bg-white/70 backdrop-blur-xl p-4 rounded-[2rem] border border-white shadow-2xl shadow-slate-900/5">
-                <div className="text-right px-4 border-l border-slate-100/50">
-                    <p className="text-[10px] font-black text-slate-400 uppercase">النشاط الكلي</p>
-                    <p className="text-xl font-black text-slate-900">{categories.length} <span className="text-[10px] text-slate-300">أقسام</span></p>
+          <div className="flex items-center gap-4">
+             <div className="hidden sm:flex items-center gap-4 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                <div className="text-right px-4 border-l border-slate-200">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">الأقسام</p>
+                    <p className="text-lg font-bold text-slate-900">{categories.length}</p>
                 </div>
                 <div className="text-right px-4">
-                    <p className="text-[10px] font-black text-slate-400 uppercase">تنوع القائمة</p>
-                    <p className="text-xl font-black text-slate-900">
-                        {categories.reduce((acc, cat) => acc + cat.menuItems.length, 0)} <span className="text-[10px] text-slate-300">أطباق</span>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">إجمالي الأطباق</p>
+                    <p className="text-lg font-bold text-slate-900">
+                        {categories.reduce((acc, cat) => acc + cat.menuItems.length, 0)}
                     </p>
                 </div>
              </div>
              <motion.button 
-               whileHover={{ scale: 1.05 }}
-               whileTap={{ scale: 0.95 }}
+               whileHover={{ scale: 1.02 }}
+               whileTap={{ scale: 0.98 }}
                onClick={() => setIsCatDrawerOpen(true)}
-               className="text-white p-6 rounded-3xl group shadow-2xl shadow-slate-900/20 flex flex-col items-center justify-center gap-1 transition-all"
+               className="h-14 px-6 rounded-2xl text-white font-bold flex items-center gap-2 transition-all shadow-md"
                style={{ backgroundColor: 'var(--brand-primary)' }}
              >
-               <Plus size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-               <span className="text-[10px] font-black uppercase">قسم جديد</span>
+               <Plus size={20} />
+               <span className="text-xs uppercase tracking-wide">قسم جديد</span>
              </motion.button>
           </div>
         </motion.div>
@@ -151,23 +199,17 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                         <motion.button
                             onClick={() => setActiveTab(cat.id)}
                             className={cn(
-                                "relative h-18 px-8 rounded-3xl text-sm font-black transition-all duration-500 flex items-center gap-4 overflow-hidden",
+                                "relative h-12 px-6 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-3",
                                 activeTab === cat.id
-                                    ? "text-white shadow-2xl ring-4 ring-slate-900/5"
-                                    : "bg-white/40 text-slate-500 hover:bg-white border border-slate-200/50"
+                                    ? "text-white shadow-lg shadow-slate-200"
+                                    : "bg-slate-50 text-slate-500 hover:bg-slate-100 border border-slate-200/50"
                             )}
                             style={activeTab === cat.id ? { backgroundColor: 'var(--brand-primary)' } : {}}
                         >
-                            <div className={cn(
-                                "h-10 w-10 rounded-2xl flex items-center justify-center transition-all duration-500",
-                                activeTab === cat.id ? "bg-white/10 scale-110 rotate-12" : "bg-slate-50"
-                            )}>
-                                <Shapes size={18} className={activeTab === cat.id ? "text-amber-400" : "text-slate-400"} />
-                            </div>
                             <span className="whitespace-nowrap">{cat.name}</span>
                             <div className={cn(
-                                "h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-black",
-                                activeTab === cat.id ? "bg-white/20 text-white" : "bg-slate-100 text-slate-400"
+                                "h-5 w-5 rounded-full flex items-center justify-center text-[9px] font-bold",
+                                activeTab === cat.id ? "bg-white/20 text-white" : "bg-slate-200 text-slate-500"
                             )}>
                                 {cat.menuItems.length}
                             </div>
@@ -195,31 +237,28 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
         </div>
 
         {/* Search & Add Action Panel */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center px-2">
-            <div className="md:col-span-8 relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-slate-200 to-slate-100 rounded-[2.5rem] blur opacity-25 group-hover:opacity-50 transition-opacity" />
-                <div className="relative bg-white/80 backdrop-blur-md rounded-[2.2rem] h-20 border border-white flex items-center px-8 gap-4 shadow-xl" style={{ boxShadow: '0 20px 25px -5px color-mix(in srgb, var(--brand-primary), transparent 95%)' }}>
-                    <Search className="h-6 w-6 text-slate-300" />
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+            <div className="md:col-span-9 relative group">
+                <div className="relative bg-slate-50 border border-slate-100 rounded-2xl h-14 flex items-center px-6 gap-3 transition-all focus-within:bg-white focus-within:border-slate-300">
+                    <Search className="h-4 w-4 text-slate-400" />
                     <input
                         type="text"
-                        placeholder="ابحث عن وجبة، نكهة، أو مكون..."
+                        placeholder="ابحث في القائمة..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="flex-1 bg-transparent border-none text-lg font-bold text-slate-900 placeholder:text-slate-300 focus:ring-0 outline-none"
+                        className="flex-1 bg-transparent border-none text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-none"
                     />
-                    <div className="h-10 w-1px bg-slate-100 mx-2" />
-                    <Zap size={20} className="text-amber-400 animate-pulse" />
                 </div>
             </div>
-            <div className="md:col-span-4">
+            <div className="md:col-span-3">
                 <motion.button 
-                    whileHover={{ x: -10 }}
+                    whileHover={{ scale: 1.02 }}
                     disabled={!activeTab}
-                    onClick={() => { setEditingItem(null); setIsItemDrawerOpen(true); }}
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-20 rounded-[2.2rem] text-lg font-black shadow-2xl shadow-emerald-600/20 flex items-center justify-center gap-4 transition-all"
+                    onClick={() => openItemDrawer()}
+                    className="w-full bg-slate-900 text-white h-14 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-slate-900/10"
                 >
-                    <PlusCircle size={24} />
-                    إضافة طبق إبداعي
+                    <Plus size={18} />
+                    إضافة وجبة
                 </motion.button>
             </div>
         </div>
@@ -237,68 +276,59 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                         key={item.id}
                         className="group relative"
                     >
-                        {/* Floating Price Aura */}
-                        <div className="absolute -top-4 -left-4 z-20 bg-white shadow-2xl rounded-3xl px-5 py-3 border border-slate-50 flex items-center gap-2 scale-90 group-hover:scale-100 transition-transform duration-500">
-                             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                             <span className="text-lg font-black text-slate-900 leading-none">{formatCurrency(item.price, currency)}</span>
-                        </div>
-
-                        <div className="relative overflow-hidden bg-white rounded-[3rem] border border-white shadow-2xl transition-all duration-700 h-full flex flex-col" style={{ boxShadow: '0 20px 25px -5px color-mix(in srgb, var(--brand-primary), transparent 95%)' }}>
-                            {/* Visual Header (Image) */}
-                            <div className="relative h-64 overflow-hidden rounded-[2.8rem] m-2">
+                        <div className="relative overflow-hidden bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col">
+                            {/* Card Media */}
+                            <div className="relative h-40 overflow-hidden bg-slate-50 m-2 rounded-xl border border-slate-100/50">
                                 {item.image_url ? (
-                                    <img src={item.image_url} alt={item.name} className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+                                    <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
                                 ) : (
-                                    <div className="h-full w-full flex flex-col items-center justify-center text-white" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 20%)' }}>
-                                        <ImageIcon size={48} strokeWidth={1} />
-                                        <span className="text-[10px] font-black mt-2">لا توجد صورة</span>
+                                    <div className="h-full w-full flex items-center justify-center text-slate-300">
+                                        <ImageIcon size={24} />
                                     </div>
                                 )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-700" />
                                 
-                                {/* Quick Info Over Image */}
-                                <div className="absolute bottom-6 inset-x-8">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[9px] font-black text-white uppercase tracking-tighter border border-white/10">
-                                            {activeCategory?.name}
-                                        </div>
-                                    </div>
-                                    <h3 className="text-2xl font-black text-white leading-tight drop-shadow-lg">{item.name}</h3>
+                                <div className="absolute top-2 right-2 flex gap-1">
+                                    <button 
+                                      onClick={(e) => { e.stopPropagation(); toggleItemStatus(item.id, item.is_available); }}
+                                      className={cn("h-7 px-3 rounded-lg text-[9px] font-bold border transition-all shadow-sm", item.is_available ? "bg-emerald-500 text-white border-emerald-600" : "bg-white text-rose-500 border-rose-100")}
+                                    >
+                                        {item.is_available ? "نشط" : "متوقف"}
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* Card Body */}
-                            <div className="p-8 pt-4 flex-1 flex flex-col justify-between">
-                                <p className="text-sm font-bold text-slate-400 line-clamp-3 leading-relaxed mb-8">
-                                    {item.description || "سيمفونية من المكونات الطازجة المحضرة بعناية لتناسب ذوقك الرفيع..."}
+                            {/* Card Content */}
+                            <div className="p-4 flex-1 flex flex-col">
+                                <div className="flex justify-between items-start gap-2 mb-2">
+                                    <h3 className="text-base font-bold text-slate-900 line-clamp-1">{item.name}</h3>
+                                    <span className="text-sm font-bold text-slate-900">{formatCurrency(item.price, currency)}</span>
+                                </div>
+                                
+                                <p className="text-[11px] font-medium text-slate-400 line-clamp-2 leading-relaxed mb-6">
+                                    {item.description || "لا يوجد وصف لهذا الطبق."}
                                 </p>
 
-                                <div className="space-y-6">
-                                    <div className="flex items-center justify-between px-6 py-4 bg-slate-50/50 rounded-3xl border border-slate-100/50">
-                                        <div className="text-right">
-                                            <p className="text-[9px] font-black text-slate-300 uppercase">تكلفة المواد</p>
-                                            <p className="text-sm font-black text-slate-500">{formatCurrency(item.cost_price || 0, currency)}</p>
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-[9px] font-black text-slate-300 uppercase">الهامش</p>
-                                            <p className="text-sm font-black text-emerald-600">+{formatCurrency((item.price - (item.cost_price || 0)), currency)}</p>
-                                        </div>
+                                <div className="mt-auto space-y-3">
+                                    <div className="flex items-center justify-between py-2 px-3 bg-slate-50 rounded-lg border border-slate-100">
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">الربح المتوقع</span>
+                                        <span className="text-[11px] font-bold text-emerald-600">
+                                            {formatCurrency((item.price - (item.cost_price || 0)), currency)}
+                                        </span>
                                     </div>
 
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex gap-2">
                                         <button 
-                                            onClick={() => { setEditingItem(item); setIsItemDrawerOpen(true); }}
-                                            className="flex-1 h-14 text-white rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-xl transition-all"
-                                            style={{ backgroundColor: 'var(--brand-primary)' }}
+                                            onClick={() => openItemDrawer(item)}
+                                            className="flex-1 h-10 bg-slate-900 text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-2 hover:bg-slate-800 transition-all shadow-sm"
                                         >
-                                            <Edit3 size={16} />
-                                            <span>تحديث الوجبة</span>
+                                            <Edit3 size={14} />
+                                            <span>تعديل</span>
                                         </button>
                                         <button 
                                             onClick={() => setConfirmDeleteItemId(item.id)}
-                                            className="h-14 w-14 flex items-center justify-center rounded-2xl bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-90"
+                                            className="h-10 w-10 flex items-center justify-center rounded-xl bg-rose-50 text-rose-500 hover:bg-rose-100 transition-all border border-rose-100"
                                         >
-                                            <Trash2 size={20} />
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
                                 </div>
@@ -335,170 +365,464 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={() => { setIsCatDrawerOpen(false); setIsItemDrawerOpen(false); }}
-                    className="fixed inset-0 z-[100] backdrop-blur-2xl"
-                    style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 80%, transparent)' }}
+                    className="fixed inset-0 z-[9998] bg-slate-900/40 backdrop-blur-md"
                 />
             )}
 
+            {/* UI/UX Pro Max: Full Page Immersive Experience */}
             {isItemDrawerOpen && (
-                <motion.div
-                    key="item-drawer"
-                    initial={{ x: "100%" }}
-                    animate={{ x: 0 }}
-                    exit={{ x: "100%" }}
-                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className="fixed inset-y-0 right-0 z-[101] w-full max-w-2xl bg-white shadow-2xl flex flex-col h-full overflow-hidden"
-                >
-                    {/* Drawer Header */}
-                    <div className="p-10 pb-8 flex items-center justify-between border-b border-slate-50 shrink-0">
-                        <div className="flex items-center gap-6">
-                            <div className="h-20 w-20 rounded-[2.5rem] flex items-center justify-center shadow-xl border border-emerald-100/50" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 90%)', color: 'var(--brand-primary)' }}>
-                                {editingItem ? <Edit3 size={32} /> : <PlusCircle size={32} />}
+                    <motion.div
+                        key="full-page-item-editor"
+                        initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 30, scale: 0.98 }}
+                        className="fixed inset-0 z-[10000] bg-slate-50 flex flex-col overflow-hidden"
+                    >
+                        {/* Immersive Header */}
+                        <header className="h-20 bg-white border-b border-slate-100 flex items-center justify-between px-8 shrink-0">
+                            <div className="flex items-center gap-6">
+                                <button 
+                                    onClick={() => setIsItemDrawerOpen(false)}
+                                    className="h-12 w-12 rounded-2xl flex items-center justify-center bg-slate-50 text-slate-400 hover:bg-slate-100 transition-all border border-slate-100"
+                                >
+                                    <X size={20} />
+                                </button>
+                                <div className="h-10 w-px bg-slate-100" />
+                                <div>
+                                    <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest block mb-0.5">لوحة التحكم / المنيو</span>
+                                    <h2 className="text-xl font-black text-slate-900 leading-tight">
+                                        {editingItem ? `تعديل: ${editingItem.name}` : "إضافة صنف جديد للقائمة"}
+                                    </h2>
+                                </div>
                             </div>
-                            <div>
-                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">
-                                    {editingItem ? "تعديل الطبق" : "خلق وجبة جديدة"}
-                                </h2>
-                                <p className="text-sm font-bold text-slate-400 mt-1">تأكد من أن الوصف يثير شهية من يقرأه.</p>
+
+                            <div className="flex items-center gap-4">
+                                <span className="text-xs font-bold text-slate-400 hidden sm:inline">هل انتهيت من الصياغة؟</span>
+                                <button 
+                                    form="item-main-form"
+                                    type="submit"
+                                    disabled={loading}
+                                    className="h-12 px-8 rounded-2xl bg-slate-900 text-white text-sm font-bold shadow-xl shadow-slate-900/10 active:scale-95 transition-all flex items-center gap-2"
+                                >
+                                    {loading ? <Loader2 className="animate-spin h-4 w-4" /> : (editingItem ? "حفظ التغييرات" : "إضافة الوجبة الآن")}
+                                </button>
                             </div>
+                        </header>
+
+                        {/* Editor Canvas */}
+                        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#f8fafc]">
+                            <form id="item-main-form" onSubmit={handleSaveItem} className="max-w-7xl mx-auto px-6 py-12">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                                    
+                                    {/* Left Column: Core Identity */}
+                                    <div className="lg:col-span-7 space-y-10">
+                                        <div className="bg-white rounded-[2.5rem] border border-slate-100 p-10 shadow-sm space-y-10">
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="h-8 w-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                                        <Edit3 size={16} />
+                                                    </div>
+                                                    <h3 className="text-lg font-bold text-slate-900">المعلومات الأساسية</h3>
+                                                </div>
+                                                
+                                                <div className="space-y-6">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[11px] font-bold text-slate-400 uppercase px-2">اسم الصنف</label>
+                                                        <input name="name" defaultValue={editingItem?.name} placeholder="أدخل اسماً جذاباً..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 h-16 text-lg font-bold text-slate-900 focus:bg-white focus:border-indigo-200 transition-all outline-none" required />
+                                                    </div>
+                                                    
+                                                    <div className="space-y-2">
+                                                        <label className="text-[11px] font-bold text-slate-400 uppercase px-2">وصف المذاق</label>
+                                                        <textarea name="description" defaultValue={editingItem?.description} placeholder="صف نكهة الطبق، المكونات، وطريقة الطهي..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-6 text-base font-medium text-slate-600 focus:bg-white focus:border-indigo-200 transition-all outline-none h-40 resize-none leading-relaxed" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-6 pt-10 border-t border-slate-50">
+                                                <div className="space-y-2">
+                                                    <label className="text-[11px] font-bold text-slate-400 uppercase px-2">
+                                                        سعر البيع ({currency}) 
+                                                        {showVariants && <span className="mr-2 text-[9px] text-rose-500 font-black tracking-tighter bg-rose-50 px-2 py-0.5 rounded-full border border-rose-100">مقفل بسبب الأحجام</span>}
+                                                    </label>
+                                                    <div className="relative group">
+                                                        <div className={cn("absolute right-6 top-1/2 -translate-y-1/2 font-bold transition-colors", showVariants ? "text-slate-300" : "text-emerald-500")}>$</div>
+                                                        <input 
+                                                            name="price" 
+                                                            type="number" 
+                                                            step="0.01" 
+                                                            defaultValue={editingItem?.price} 
+                                                            placeholder="0.00" 
+                                                            disabled={showVariants}
+                                                            className={cn(
+                                                                "w-full rounded-2xl pr-14 pl-6 h-16 text-xl font-extrabold transition-all outline-none border",
+                                                                showVariants 
+                                                                    ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed" 
+                                                                    : "bg-slate-50 border-slate-100 text-slate-900 focus:bg-white focus:border-emerald-200"
+                                                            )} 
+                                                            required={!showVariants} 
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[11px] font-bold text-slate-400 uppercase px-2">
+                                                        تكلفة المواد
+                                                        {showVariants && <span className="mr-2 text-[9px] text-slate-400 font-black tracking-tighter bg-slate-50 px-2 py-0.5 rounded-full border border-slate-100">تلقائي</span>}
+                                                    </label>
+                                                    <div className="relative group">
+                                                        <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 font-bold">$</div>
+                                                        <input 
+                                                            name="cost_price" 
+                                                            type="number" 
+                                                            step="0.01" 
+                                                            defaultValue={editingItem?.cost_price} 
+                                                            placeholder="0.00" 
+                                                            disabled={showVariants}
+                                                            className={cn(
+                                                                "w-full rounded-2xl pr-14 pl-6 h-16 text-xl font-extrabold transition-all outline-none border",
+                                                                showVariants 
+                                                                    ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed" 
+                                                                    : "bg-slate-50 border-slate-100 text-slate-500 focus:bg-white focus:border-slate-300"
+                                                            )} 
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Pro Max Customization Control Center */}
+                                        <div className="bg-white rounded-[2.5rem] border border-slate-100 p-10 shadow-sm space-y-10">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="h-8 w-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                                        <Settings size={16} />
+                                                    </div>
+                                                    <h3 className="text-lg font-bold text-slate-900">مركز التحكم بالخيارات</h3>
+                                                </div>
+                                                
+                                                <div className="flex bg-slate-100/50 p-1.5 rounded-[1.5rem] border border-slate-200/50 gap-2">
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => setShowVariants(!showVariants)} 
+                                                        className={cn(
+                                                            "px-5 py-3 rounded-2xl text-[11px] font-black transition-all flex items-center gap-2.5", 
+                                                            showVariants 
+                                                                ? "bg-white text-indigo-600 shadow-lg shadow-indigo-100 border border-indigo-100" 
+                                                                : "text-slate-400 hover:bg-white/50 hover:text-slate-600"
+                                                        )}
+                                                    >
+                                                        <Maximize2 size={14} className={cn(showVariants ? "text-indigo-500" : "text-slate-300")} />
+                                                        أحجام
+                                                    </button>
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => setShowAddons(!showAddons)} 
+                                                        className={cn(
+                                                            "px-5 py-3 rounded-2xl text-[11px] font-black transition-all flex items-center gap-2.5", 
+                                                            showAddons 
+                                                                ? "bg-white text-amber-600 shadow-lg shadow-amber-100 border border-amber-100" 
+                                                                : "text-slate-400 hover:bg-white/50 hover:text-slate-600"
+                                                        )}
+                                                    >
+                                                        <Layers size={14} className={cn(showAddons ? "text-amber-500" : "text-slate-300")} />
+                                                        إضافات
+                                                    </button>
+                                                    <button 
+                                                        type="button" 
+                                                        onClick={() => setShowNotes(!showNotes)} 
+                                                        className={cn(
+                                                            "px-5 py-3 rounded-2xl text-[11px] font-black transition-all flex items-center gap-2.5", 
+                                                            showNotes 
+                                                                ? "bg-white text-emerald-600 shadow-lg shadow-emerald-100 border border-emerald-100" 
+                                                                : "text-slate-400 hover:bg-white/50 hover:text-slate-600"
+                                                        )}
+                                                    >
+                                                        <MessageSquare size={14} className={cn(showNotes ? "text-emerald-500" : "text-slate-300")} />
+                                                        ملاحظات
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-6">
+                                                <AnimatePresence>
+                                                    {showVariants && (
+                                                        <motion.div 
+                                                            key="variants-section"
+                                                            initial={{ opacity: 0, y: 10 }} 
+                                                            animate={{ opacity: 1, y: 0 }} 
+                                                            exit={{ opacity: 0, y: 10 }} 
+                                                            className="p-8 bg-indigo-50/30 rounded-[2.5rem] border border-indigo-100/50 space-y-6"
+                                                        >
+                                                            <div className="flex items-center justify-between">
+                                                                <h4 className="text-sm font-bold text-indigo-900">خيارات الأحجام المتوفرة</h4>
+                                                                <button type="button" onClick={() => setVariants([...variants, { name: "", price: 0 }])} className="h-10 px-5 rounded-xl bg-white text-indigo-600 font-bold text-xs flex items-center gap-2 border border-indigo-100 shadow-sm hover:bg-indigo-600 hover:text-white transition-all">
+                                                                    <Plus size={16} /> إضافة حجم
+                                                                </button>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                {variants.map((v, i) => (
+                                                                    <div key={i} className="flex gap-3 items-center group bg-white/50 p-2 rounded-2xl border border-indigo-100/30">
+                                                                        <input placeholder="الاسم (مثلاً: كبير)" value={v.name} onChange={(e) => {
+                                                                            const newV = [...variants];
+                                                                            newV[i].name = e.target.value;
+                                                                            setVariants(newV);
+                                                                        }} className="flex-1 bg-white border border-slate-100 rounded-xl px-4 h-12 text-sm font-bold text-slate-700 focus:border-indigo-400 transition-all outline-none" />
+                                                                        
+                                                                        <div className="flex gap-2 shrink-0">
+                                                                            <div className="relative w-28">
+                                                                                <input type="number" step="0.01" placeholder="بيع" value={v.price} onChange={(e) => {
+                                                                                    const newV = [...variants];
+                                                                                    newV[i].price = e.target.value;
+                                                                                    setVariants(newV);
+                                                                                }} className="w-full bg-white border border-slate-100 rounded-xl px-4 pl-8 h-12 text-xs font-black text-indigo-600 focus:border-indigo-400 transition-all outline-none" />
+                                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-bold">بيع</span>
+                                                                            </div>
+                                                                            
+                                                                            <div className="relative w-28">
+                                                                                <input type="number" step="0.01" placeholder="تكلفة" value={v.cost_price || ""} onChange={(e) => {
+                                                                                    const newV = [...variants];
+                                                                                    newV[i].cost_price = e.target.value;
+                                                                                    setVariants(newV);
+                                                                                }} className="w-full bg-white border border-slate-100 rounded-xl px-4 pl-8 h-12 text-xs font-bold text-slate-400 focus:border-slate-300 transition-all outline-none" />
+                                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-200 font-bold">تكلفة</span>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <button type="button" onClick={() => setVariants(variants.filter((_, idx) => idx !== i))} className="h-10 w-10 flex items-center justify-center rounded-xl text-slate-300 hover:bg-rose-50 hover:text-rose-500 transition-all">
+                                                                            <Trash2 size={16} />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+
+                                                    {showAddons && (
+                                                        <motion.div 
+                                                            key="addons-section"
+                                                            initial={{ opacity: 0, y: 10 }} 
+                                                            animate={{ opacity: 1, y: 0 }} 
+                                                            exit={{ opacity: 0, y: 10 }} 
+                                                            className="p-8 bg-amber-50/30 rounded-[2.5rem] border border-amber-100/50 space-y-6"
+                                                        >
+                                                            <div className="flex items-center justify-between">
+                                                                <h4 className="text-sm font-bold text-amber-900">الإضافات الاختيارية (Toppings)</h4>
+                                                                <button type="button" onClick={() => setAddons([...addons, { name: "", price: 0 }])} className="h-10 px-5 rounded-xl bg-white text-amber-600 font-bold text-xs flex items-center gap-2 border border-amber-100 shadow-sm hover:bg-amber-600 hover:text-white transition-all">
+                                                                    <Plus size={16} /> إضافة خيار
+                                                                </button>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                {addons.map((a, i) => (
+                                                                    <div key={i} className="flex gap-3 items-center group bg-white/50 p-2 rounded-2xl border border-amber-100/30">
+                                                                        <input placeholder="إضافة..." value={a.name} onChange={(e) => {
+                                                                            const newA = [...addons];
+                                                                            newA[i].name = e.target.value;
+                                                                            setAddons(newA);
+                                                                        }} className="flex-1 bg-white border border-slate-100 rounded-xl px-4 h-12 text-sm font-bold text-slate-700 focus:border-amber-400 transition-all outline-none" />
+                                                                        
+                                                                        <div className="flex gap-2 shrink-0">
+                                                                            <div className="relative w-28">
+                                                                                <input type="number" step="0.01" placeholder="سعر" value={a.price} onChange={(e) => {
+                                                                                    const newA = [...addons];
+                                                                                    newA[i].price = e.target.value;
+                                                                                    setAddons(newA);
+                                                                                }} className="w-full bg-white border border-slate-100 rounded-xl px-4 pl-8 h-12 text-xs font-black text-amber-600 focus:border-amber-400 transition-all outline-none" />
+                                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-bold">بيع</span>
+                                                                            </div>
+                                                                            <div className="relative w-28">
+                                                                                <input type="number" step="0.01" placeholder="تكلفة" value={a.cost_price || ""} onChange={(e) => {
+                                                                                    const newA = [...addons];
+                                                                                    newA[i].cost_price = e.target.value;
+                                                                                    setAddons(newA);
+                                                                                }} className="w-full bg-white border border-slate-100 rounded-xl px-4 pl-8 h-12 text-xs font-bold text-slate-400 focus:border-slate-300 transition-all outline-none" />
+                                                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-200 font-bold">تكلفة</span>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <button type="button" onClick={() => setAddons(addons.filter((_, idx) => idx !== i))} className="h-10 w-10 flex items-center justify-center rounded-xl text-slate-300 hover:bg-rose-50 hover:text-rose-500 transition-all">
+                                                                            <Trash2 size={16} />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+
+                                                    {showNotes && (
+                                                        <motion.div 
+                                                            key="notes-section"
+                                                            initial={{ opacity: 0, y: 10 }} 
+                                                            animate={{ opacity: 1, y: 0 }} 
+                                                            exit={{ opacity: 0, y: 10 }} 
+                                                            className="p-8 bg-emerald-50/30 rounded-[2.5rem] border border-emerald-100/50"
+                                                        >
+                                                            <div className="flex items-center gap-4 mb-4">
+                                                                <div className="h-10 w-10 rounded-2xl bg-emerald-500 flex items-center justify-center text-white">
+                                                                    <MessageSquare size={18} />
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-sm font-bold text-emerald-900">ملاحظات التحضير</h4>
+                                                                    <p className="text-[10px] font-bold text-emerald-600/60 uppercase">مفعل للزبائن</p>
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-xs font-medium text-emerald-800/70 leading-relaxed max-w-sm">
+                                                                سيتمكن الزبائن من إضافة تعليمات خاصة عند طلب هذه الوجبة (مثل: ترحيب خاص بطفل، تقليل الصوص، بدون فلفل).
+                                                            </p>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right Column: Visual Identity & Preview */}
+                                    <div className="lg:col-span-5 space-y-10">
+                                        <div className="bg-white rounded-[2.5rem] border border-slate-100 p-10 shadow-sm">
+                                            <div className="flex items-center gap-3 mb-8">
+                                                <div className="h-8 w-8 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
+                                                    <ImageIcon size={16} />
+                                                </div>
+                                                <h3 className="text-lg font-bold text-slate-900">الجاذبية البصرية</h3>
+                                            </div>
+
+                                            <div className="space-y-6">
+                                                <div className="relative group">
+                                                    <div className="aspect-square w-full rounded-[2.5rem] overflow-hidden bg-slate-50 border-4 border-slate-100 shadow-inner group-hover:border-indigo-100 transition-all flex items-center justify-center">
+                                                        {(editingItem?.image_url) ? (
+                                                            <img src={editingItem.image_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                        ) : (
+                                                            <div className="text-center space-y-4">
+                                                                <div className="h-20 w-20 rounded-[2rem] bg-white shadow-xl flex items-center justify-center mx-auto text-slate-200">
+                                                                    <ImageIcon size={32} />
+                                                                </div>
+                                                                <p className="text-xs font-bold text-slate-400">لم يتم اختيار صورة بعد</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-[11px] font-bold text-slate-400 uppercase px-2">رابط الصورة (URL)</label>
+                                                    <input name="image_url" defaultValue={editingItem?.image_url} placeholder="أدخل رابط صورة عالية الدقة..." className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 h-16 text-xs font-mono font-medium focus:bg-white focus:border-indigo-200 transition-all outline-none" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Quick Summary Card */}
+                                        <div className="bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl shadow-slate-900/20 relative overflow-hidden">
+                                            <div className="relative z-10 space-y-8">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="h-10 w-10 rounded-2xl bg-white/10 flex items-center justify-center">
+                                                        <TrendingUp size={18} className="text-emerald-400" />
+                                                    </div>
+                                                    <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase">تحليل الأرباح</div>
+                                                </div>
+                                                
+                                                <div className="space-y-1">
+                                                    <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">هامش الربح لكل طلب</p>
+                                                    <h4 className="text-4xl font-black">{formatCurrency((editingItem?.price || 0) - (editingItem?.cost_price || 0), currency)}</h4>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">حالة الظهور</p>
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="h-2 w-2 rounded-full bg-emerald-500" />
+                                                            <span className="text-xs font-bold">مباشر على المنيو</span>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-slate-500 uppercase mb-1">القسم</p>
+                                                        <span className="text-xs font-bold">{activeCategory?.name}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            {/* Decorative Elements */}
+                                            <div className="absolute -bottom-10 -right-10 h-40 w-40 bg-indigo-600 rounded-full blur-[80px] opacity-20" />
+                                            <div className="absolute top-10 right-10 h-4 underline w-px bg-white/10 rotate-45" />
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </form>
+                        </main>
+                    </motion.div>
+                )}
+            
+            {/* Same premium feel for other modals (Cat Add, Delete, Rename) */}
+            {(confirmDeleteCatId || confirmDeleteItemId) && (
+                <div key="delete-confirmation-modal" className="fixed inset-0 z-[10001] flex items-center justify-center p-6">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setConfirmDeleteCatId(null); setConfirmDeleteItemId(null); }} className="fixed inset-0 backdrop-blur-3xl" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 90%, transparent)' }} />
+                    <motion.div 
+                        initial={{ scale: 0.8, opacity: 0 }} 
+                        animate={{ scale: 1, opacity: 1 }} 
+                        exit={{ scale: 0.8, opacity: 0 }} 
+                        className="relative z-10 w-full max-w-sm bg-white rounded-[4rem] p-12 text-center border-t-8 border-rose-500"
+                    >
+                        <div className="mx-auto w-28 h-28 bg-rose-50 text-rose-500 rounded-[3rem] flex items-center justify-center mb-10 shadow-3xl shadow-rose-500/20">
+                            <AlertCircle size={56} />
                         </div>
-                        <button onClick={() => setIsItemDrawerOpen(false)} className="h-16 w-16 flex items-center justify-center rounded-3xl bg-slate-50 text-slate-400 hover:text-slate-900 transition-colors">
-                            <X size={28} />
-                        </button>
-                    </div>
-
-                    <form onSubmit={handleSaveItem} className="flex-1 overflow-y-auto p-12 custom-scrollbar space-y-12 bg-slate-50/20">
-                        <div className="space-y-10">
-                            <div className="space-y-3">
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">اسم الوجبة الرنان</label>
-                                <input name="name" defaultValue={editingItem?.name} placeholder="مثل: باستا تروفل الملكية..." className="w-full bg-white border border-slate-100 rounded-[2rem] px-8 py-6 text-xl font-black text-slate-900 transition-all outline-none" style={{ '--tw-ring-color': 'color-mix(in srgb, var(--brand-primary) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--brand-primary) 20%, transparent)' } as any} required />
-                            </div>
-                            
-                            <div className="space-y-3">
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">قصة الوجبة (الوصف)</label>
-                                <textarea name="description" defaultValue={editingItem?.description} placeholder="صف نكهة الطبق، مكوناته السرية، أو طريق الطهي..." className="w-full bg-white border border-slate-100 rounded-[2.5rem] px-8 py-8 text-lg font-bold text-slate-600 transition-all outline-none h-48 resize-none leading-relaxed" style={{ '--tw-ring-color': 'color-mix(in srgb, var(--brand-primary) 10%, transparent)', borderColor: 'color-mix(in srgb, var(--brand-primary) 20%, transparent)' } as any} />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-8">
-                                <div className="space-y-3">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">سعر المنيو ({currency})</label>
-                                    <div className="relative group">
-                                        <DollarSign className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-500 h-6 w-6" />
-                                        <input name="price" type="number" step="0.01" defaultValue={editingItem?.price} placeholder="12.00" className="w-full bg-white border border-slate-100 rounded-[2rem] pr-14 pl-8 h-20 text-2xl font-black text-emerald-700 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none" required />
-                                    </div>
-                                </div>
-                                <div className="space-y-3">
-                                    <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">تكلفة المواد</label>
-                                    <div className="relative group">
-                                        <TrendingUp className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 h-6 w-6" />
-                                        <input name="cost_price" type="number" step="0.01" defaultValue={editingItem?.cost_price} placeholder="8.50" className="w-full bg-white border border-slate-100 rounded-[2rem] pr-14 pl-8 h-20 text-2xl font-black text-slate-500 focus:ring-4 focus:ring-slate-900/5 transition-all outline-none" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3">
-                                <label className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">رابط الصورة الجذابة</label>
-                                <div className="flex gap-6">
-                                    <input name="image_url" defaultValue={editingItem?.image_url} placeholder="أدخل رابط صورة عالية الدقة..." className="flex-1 bg-white border border-slate-100 rounded-[2rem] px-8 h-20 text-sm font-mono font-bold focus:ring-4 focus:ring-slate-900/5 border-slate-900/10 transition-all outline-none" />
-                                    <div className="h-20 w-20 rounded-[2rem] border-2 border-dashed border-slate-200 flex items-center justify-center shrink-0 bg-white overflow-hidden shadow-inner transform hover:scale-105 transition-transform">
-                                        {(editingItem?.image_url) ? <img src={editingItem.image_url} className="w-full h-full object-cover" /> : <ImageIcon size={24} className="text-slate-200" />}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="pt-8">
-                            <button type="submit" disabled={loading} className="group w-full relative h-24 overflow-hidden rounded-[2.5rem] text-white shadow-2xl transition-all active:scale-95" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                                <div className="relative z-10 flex items-center justify-center gap-6 text-xl font-black">
-                                    {loading ? <Loader2 className="animate-spin" /> : (editingItem ? "حفظ التغييرات العصرية" : "إطلاق الوجبة للقائمة")}
-                                    <div className="h-12 w-12 bg-white/10 rounded-2xl flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                                        <ArrowRight size={20} className="rotate-180" />
-                                    </div>
-                                </div>
-                                <div className="absolute inset-x-0 bottom-0 h-1.5 bg-white/20" />
+                        <h3 className="text-3xl font-black text-slate-900 mb-4">هل أنت واثق؟</h3>
+                        <p className="text-sm font-bold text-slate-400 mb-12 leading-relaxed px-4">
+                        حذف الأطباق يؤثر على تاريخ مبيعاتك وتجربة زبائنك. {confirmDeleteCatId && "تنبيه: سيتم حذف كافة الوجبات داخل هذا القسم!"}
+                        </p>
+                        <div className="grid grid-cols-2 gap-6 text-xs font-black">
+                            <button onClick={() => { setConfirmDeleteCatId(null); setConfirmDeleteItemId(null); }} className="h-20 rounded-3xl bg-slate-50 text-slate-500 hover:bg-slate-100 transition-all">تراجع الآن</button>
+                            <button 
+                            onClick={confirmDeleteCatId ? async () => { await deleteCategory(confirmDeleteCatId); window.location.reload(); } : async () => { if(confirmDeleteItemId) await deleteMenuItem(confirmDeleteItemId); window.location.reload(); }} 
+                            className="h-20 rounded-3xl bg-rose-600 text-white shadow-3xl shadow-rose-600/30 active:scale-95 transition-all"
+                            >
+                            تأكيد الحذف
                             </button>
                         </div>
-                    </form>
-                </motion.div>
+                    </motion.div>
+                </div>
             )}
-
-            {/* Same premium feel for other modals (Cat Add, Delete, Rename) */}
-            {/* ... simplified for execution speed ... */}
-            <AnimatePresence>
-                {(confirmDeleteCatId || confirmDeleteItemId) && (
-                    <div key="delete-confirmation-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-6">
-                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setConfirmDeleteCatId(null); setConfirmDeleteItemId(null); }} className="fixed inset-0 backdrop-blur-3xl" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary) 90%, transparent)' }} />
-                       <motion.div 
-                         initial={{ scale: 0.8, opacity: 0 }} 
-                         animate={{ scale: 1, opacity: 1 }} 
-                         exit={{ scale: 0.8, opacity: 0 }} 
-                         className="relative z-10 w-full max-w-sm bg-white rounded-[4rem] p-12 text-center border-t-8 border-rose-500"
-                       >
-                          <div className="mx-auto w-28 h-28 bg-rose-50 text-rose-500 rounded-[3rem] flex items-center justify-center mb-10 shadow-3xl shadow-rose-500/20">
-                             <AlertCircle size={56} />
-                          </div>
-                          <h3 className="text-3xl font-black text-slate-900 mb-4">هل أنت واثق؟</h3>
-                          <p className="text-sm font-bold text-slate-400 mb-12 leading-relaxed px-4">
-                            حذف الأطباق يؤثر على تاريخ مبيعاتك وتجربة زبائنك. {confirmDeleteCatId && "تنبيه: سيتم حذف كافة الوجبات داخل هذا القسم!"}
-                          </p>
-                          <div className="grid grid-cols-2 gap-6 text-xs font-black">
-                             <button onClick={() => { setConfirmDeleteCatId(null); setConfirmDeleteItemId(null); }} className="h-20 rounded-3xl bg-slate-50 text-slate-500 hover:bg-slate-100 transition-all">تراجع الآن</button>
-                             <button 
-                               onClick={confirmDeleteCatId ? async () => { await deleteCategory(confirmDeleteCatId); window.location.reload(); } : async () => { if(confirmDeleteItemId) await deleteMenuItem(confirmDeleteItemId); window.location.reload(); }} 
-                               className="h-20 rounded-3xl bg-rose-600 text-white shadow-3xl shadow-rose-600/30 active:scale-95 transition-all"
-                             >
-                               تأكيد الحذف
-                             </button>
-                          </div>
-                       </motion.div>
-                    </div>
-                )}
-                
-                {editingCatId && (
-                    <div key="edit-category-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-6">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingCatId(null)} className="absolute inset-0" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 40%)' }} />
-                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative z-10 w-full max-w-sm bg-white rounded-[3.5rem] p-12 shadow-3xl border border-white">
-                            <h3 className="text-2xl font-black text-slate-900 mb-10 text-center">تغيير اسم القسم</h3>
-                            <form onSubmit={async (e) => { e.preventDefault(); await updateCategory(editingCatId, editingCatName); window.location.reload(); }} className="space-y-6">
-                                <input 
-                                    value={editingCatName}
-                                    onChange={(e) => setEditingCatName(e.target.value)}
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-[1.8rem] h-20 px-8 font-black text-xl text-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all outline-none text-center"
-                                    autoFocus
-                                />
-                                <button type="submit" className="w-full text-white h-20 rounded-[1.8rem] font-black text-lg shadow-2xl active:scale-95 transition-transform" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                                  اعتماد التعديل
-                                </button>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
-                
-                {isCatDrawerOpen && (
-                    <div key="add-category-modal" className="fixed inset-0 z-[300] flex items-center justify-center p-6">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCatDrawerOpen(false)} className="fixed inset-0 backdrop-blur-2xl" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 20%)' }} />
-                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative z-10 w-full max-w-sm bg-white rounded-[3.5rem] p-12 shadow-3xl border border-white">
-                            <div className="h-20 w-20 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-slate-900/20" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                                <Shapes size={32} />
-                            </div>
-                            <h3 className="text-2xl font-black text-slate-900 mb-2 text-center">إضافة قسم جديد</h3>
-                            <p className="text-center text-xs font-bold text-slate-400 mb-10">نظّم وجباتك في مجموعات منطقية</p>
-                            <form onSubmit={async (e) => { e.preventDefault(); const formData = new FormData(e.currentTarget); await createCategory(formData.get("name") as string); window.location.reload(); }} className="space-y-6">
-                                <input 
-                                    name="name"
-                                    placeholder="اسم القسم (مثل: مقبلات)"
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-[1.8rem] h-20 px-8 font-black text-xl text-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all outline-none text-center"
-                                    autoFocus
-                                    required
-                                />
-                                <button type="submit" className="w-full text-white h-20 rounded-[1.8rem] font-black text-lg shadow-2xl active:scale-95 transition-transform" style={{ backgroundColor: 'var(--brand-primary)' }}>
-                                  خلق القسم الآن
-                                </button>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+            
+            {editingCatId && (
+                <div key="edit-category-modal" className="fixed inset-0 z-[10002] flex items-center justify-center p-6">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setEditingCatId(null)} className="absolute inset-0" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 40%)' }} />
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative z-10 w-full max-w-sm bg-white rounded-[3.5rem] p-12 shadow-3xl border border-white">
+                        <h3 className="text-2xl font-black text-slate-900 mb-10 text-center">تغيير اسم القسم</h3>
+                        <form onSubmit={async (e) => { e.preventDefault(); await updateCategory(editingCatId, editingCatName); window.location.reload(); }} className="space-y-6">
+                            <input 
+                                value={editingCatName}
+                                onChange={(e) => setEditingCatName(e.target.value)}
+                                className="w-full bg-slate-50 border border-slate-100 rounded-[1.8rem] h-20 px-8 font-black text-xl text-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all outline-none text-center"
+                                autoFocus
+                            />
+                            <button type="submit" className="w-full text-white h-20 rounded-[1.8rem] font-black text-lg shadow-2xl active:scale-95 transition-transform" style={{ backgroundColor: 'var(--brand-primary)' }}>
+                                اعتماد التعديل
+                            </button>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
+            
+            {isCatDrawerOpen && (
+                <div key="add-category-modal" className="fixed inset-0 z-[10003] flex items-center justify-center p-6">
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCatDrawerOpen(false)} className="fixed inset-0 backdrop-blur-2xl" style={{ backgroundColor: 'color-mix(in srgb, var(--brand-primary), transparent 20%)' }} />
+                    <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative z-10 w-full max-w-sm bg-white rounded-[3.5rem] p-12 shadow-3xl border border-white">
+                        <div className="h-20 w-20 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-slate-900/20" style={{ backgroundColor: 'var(--brand-primary)' }}>
+                            <Shapes size={32} />
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-900 mb-2 text-center">إضافة قسم جديد</h3>
+                        <p className="text-center text-xs font-bold text-slate-400 mb-10">نظّم وجباتك في مجموعات منطقية</p>
+                        <form onSubmit={async (e) => { e.preventDefault(); const formData = new FormData(e.currentTarget); await createCategory(formData.get("name") as string); window.location.reload(); }} className="space-y-6">
+                            <input 
+                                name="name"
+                                placeholder="اسم القسم (مثل: مقبلات)"
+                                className="w-full bg-slate-50 border border-slate-100 rounded-[1.8rem] h-20 px-8 font-black text-xl text-slate-900 focus:bg-white focus:ring-4 focus:ring-slate-900/5 transition-all outline-none text-center"
+                                autoFocus
+                                required
+                            />
+                            <button type="submit" className="w-full text-white h-20 rounded-[1.8rem] font-black text-lg shadow-2xl active:scale-95 transition-transform" style={{ backgroundColor: 'var(--brand-primary)' }}>
+                                خلق القسم الآن
+                            </button>
+                        </form>
+                    </motion.div>
+                </div>
+            )}
         </AnimatePresence>
       </div>
     </div>

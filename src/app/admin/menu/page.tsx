@@ -2,12 +2,19 @@ import { prisma } from "@/lib/prisma";
 import MenuManagementClient from "./MenuManagementClient";
 import { getSettings } from "@/app/actions/settings";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminMenuPage() {
   const settings = await getSettings();
   
   const categoriesRaw = await prisma.category.findMany({
     include: {
-      menuItems: true,
+      menuItems: {
+        include: {
+          variants: true,
+          addons: true
+        }
+      },
     },
     orderBy: { id: "asc" },
   });
@@ -18,7 +25,9 @@ export default async function AdminMenuPage() {
     menuItems: cat.menuItems.map((item: any) => ({
       ...item,
       price: Number(item.price),
-      cost_price: Number(item.cost_price || 0)
+      cost_price: Number(item.cost_price || 0),
+      variants: item.variants.map((v: any) => ({ ...v, price: Number(v.price), cost_price: Number(v.cost_price) })),
+      addons: item.addons.map((a: any) => ({ ...a, price: Number(a.price), cost_price: Number(a.cost_price) }))
     }))
   }));
 
