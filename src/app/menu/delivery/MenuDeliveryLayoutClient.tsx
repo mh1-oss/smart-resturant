@@ -279,9 +279,9 @@ export default function MenuDeliveryLayoutClient({
                        <p className="text-xs font-bold text-slate-500">{formatCurrency(item.price, currency)}</p>
                      </div>
                      <div className="flex items-center gap-2 bg-white rounded-xl p-1 shadow-sm">
-                       <button onClick={() => updateQuantity(item.id, -1)} className="p-1 text-slate-400"><Minus size={14} /></button>
+                       <button onClick={() => updateQuantity(String(item.id), -1)} className="p-1 text-slate-400"><Minus size={14} /></button>
                        <span className="text-sm font-black w-4 text-center">{item.quantity}</span>
-                       <button onClick={() => updateQuantity(item.id, 1)} className="p-1 text-slate-400"><Plus size={14} /></button>
+                       <button onClick={() => updateQuantity(String(item.id), 1)} className="p-1 text-slate-400"><Plus size={14} /></button>
                      </div>
                    </div>
                  ))}

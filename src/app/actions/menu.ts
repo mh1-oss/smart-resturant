@@ -1,4 +1,6 @@
 "use server";
+// Triggering TS indexing
+
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
@@ -91,6 +93,7 @@ export async function updateMenuItem(id: number, data: {
   price?: number;
   cost_price?: number;
   image_url?: string;
+  is_available?: boolean;
   show_variants?: boolean;
   show_addons?: boolean;
   show_notes?: boolean;
@@ -115,6 +118,7 @@ export async function updateMenuItem(id: number, data: {
         price: data.price,
         cost_price: data.cost_price,
         image_url: data.image_url,
+        is_available: data.is_available,
         show_variants: data.show_variants,
         show_addons: data.show_addons,
         show_notes: data.show_notes,

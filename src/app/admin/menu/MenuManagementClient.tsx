@@ -88,6 +88,17 @@ export default function MenuManagementClient({ initialCategories, currency }: { 
     return "indigo";
   }, [activeCategory]);
 
+  const toggleItemStatus = async (id: number, currentStatus: boolean) => {
+    try {
+      const result = await updateMenuItem(id, { is_available: !currentStatus });
+      if (result.success) {
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleSaveItem = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);

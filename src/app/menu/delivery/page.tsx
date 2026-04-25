@@ -10,10 +10,14 @@ export default async function DeliveryMenuPage() {
   const categoriesRaw = await prisma.category.findMany({
     include: {
       menuItems: {
-        where: { is_available: true }
+        where: { is_available: true },
+        include: {
+          variants: true,
+          addons: true
+        }
       }
     },
-    orderBy: { id: 'asc' }
+    orderBy: { name: 'asc' }
   });
 
   // Fetch active offers to apply discounts
@@ -25,7 +29,9 @@ export default async function DeliveryMenuPage() {
   // Convert Decimal to Number for serialization compatibility
   const categories = categoriesRaw.map((cat: any) => ({
     ...cat,
-    menuItems: cat.menuItems.map((item: any) => {
+    menuItems: [...cat.menuItems]
+      .sort((a, b) => a.name.localeCompare(b.name, 'ar'))
+      .map((item: any) => {
       const itemPrice = Number(item.price);
       // Find the best discount percentage from active offers for this item
       const applicableOffers = activeOffers.filter((o: any) => 
@@ -41,7 +47,17 @@ export default async function DeliveryMenuPage() {
         originalPrice: itemPrice,
         price: maxDiscount > 0 ? (itemPrice * (1 - maxDiscount / 100)) : itemPrice,
         cost_price: Number(item.cost_price || 0),
-        discountPercentage: maxDiscount > 0 ? maxDiscount : null
+        discountPercentage: maxDiscount > 0 ? maxDiscount : null,
+        variants: item.variants.map((v: any) => ({
+          ...v,
+          price: Number(v.price),
+          cost_price: Number(v.cost_price)
+        })),
+        addons: item.addons.map((a: any) => ({
+          ...a,
+          price: Number(a.price),
+          cost_price: Number(a.cost_price)
+        }))
       };
     })
   }));
