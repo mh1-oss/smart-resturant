@@ -1,24 +1,32 @@
 import { PrismaClient } from "@prisma/client";
-import { Pool } from "@neondatabase/serverless";
 import { PrismaNeon } from "@prisma/adapter-neon";
+import { Pool, neonConfig } from "@neondatabase/serverless";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-// Detect production or Cloudflare environment
-const isEdge = process.env.NODE_ENV === "production" || !!process.env.CF_PAGES;
+// Cloudflare Workers provide WebSocket globally, but Node.js does not.
+// We only use the adapter if we are surely on Cloudflare or if WebSocket is available.
+const isCloudflare = !!process.env.CF_PAGES;
 
 function createPrismaClient() {
-  if (isEdge && process.env.DATABASE_URL) {
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    const adapter = new PrismaNeon(pool as any);
-    const config: any = {
-      adapter: adapter,
-      log: ["error"]
-    };
-    return new PrismaClient(config);
+  const connectionString = process.env.DATABASE_URL;
+
+  if (isCloudflare && connectionString) {
+    try {
+      // In Cloudflare, we use the Neon adapter which is Edge-compatible
+      const pool = new Pool({ connectionString });
+      const adapter = new PrismaNeon(pool as any);
+      return new PrismaClient({ 
+        adapter: adapter as any,
+        log: ["error"] 
+      } as any);
+    } catch (e) {
+      console.error("Failed to initialize Prisma with Neon adapter:", e);
+      // Fallback to standard client (might only work if not in strict edge)
+    }
   }
   
-  // Standard client for local development
+  // Standard client for Local Dev, Vercel (Node runtime), etc.
   return new PrismaClient({ log: ["error"] });
 }
 
