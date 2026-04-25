@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
 export async function updateUserProfile(formData: { name?: string, phone?: string }) {

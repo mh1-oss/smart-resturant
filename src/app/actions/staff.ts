@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { Role } from "@prisma/client";
 
 export async function createStaff(formData: FormData) {
