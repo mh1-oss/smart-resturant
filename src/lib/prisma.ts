@@ -11,11 +11,11 @@ function createPrismaClient() {
   if (isEdge && process.env.DATABASE_URL) {
     try {
       const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      const adapter = new PrismaNeon(pool);
+      const adapter = new PrismaNeon(pool as any);
       return new PrismaClient({ 
         adapter: adapter as any,
         log: ["error"] 
-      });
+      } as any);
     } catch (e) {
       console.error("Failed to initialize Prisma with Neon adapter:", e);
       return new PrismaClient({ log: ["error"] });
